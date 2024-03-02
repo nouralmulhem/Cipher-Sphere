@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib.pyplot import imread
+import matplotlib.pyplot as plt
 
 
 class SteganographyException(Exception):
@@ -30,10 +31,8 @@ class LSBSteg():
                 val[self.curchan] = int(val[self.curchan]) | self.maskONE #OR with maskONE
             else:
                 val[self.curchan] = int(val[self.curchan]) & self.maskZERO #AND with maskZERO
-                
             self.image[self.curheight,self.curwidth] = tuple(val)
             self.next_slot() #Move "cursor" to the next space
-        
     def next_slot(self):#Move to the next slot were information can be taken or put
         if self.curchan == self.nbchannels-1: #Next Space is the following channel
             self.curchan = 0
@@ -55,6 +54,10 @@ class LSBSteg():
 
     def read_bit(self): #Read a single bit int the image
         val = self.image[self.curheight,self.curwidth][self.curchan]
+        # why & self.maskONE
+        # val = 0b1011100
+        # maskONE = 0b1000000
+        # val & maskONE = 0b1000000
         val = int(val) & self.maskONE
         self.next_slot()
         if val > 0:
@@ -74,14 +77,23 @@ class LSBSteg():
     def byteValue(self, val):
         return self.binary_value(val, 8)
         
+        
+    # test case:
+    # # Expected binary value: '0110'
+    # Explanation: Binary representation of 6 with bitsize 4.
+    #binary_value(6, 4) == '0110'
+    ###
     def binary_value(self, val, bitsize): #Return the binary value of an int as a byte
-        binval = bin(val)[2:]
+        binval = bin(val)[2:] ## delete 0b
         if len(binval) > bitsize:
             raise SteganographyException("binary value larger than the expected size")
         while len(binval) < bitsize:
             binval = "0"+binval
         return binval
 
+    ## encode text by steps:
+    # 1. put len of text
+    # 2. put each char of text
     def encode_text(self, txt):
         l = len(txt)
         binl = self.binary_value(l, 16) #Length coded on 2 bytes so the text size can be up to 65536 bytes long
@@ -91,6 +103,9 @@ class LSBSteg():
             self.put_binary_value(self.byteValue(c))
         return self.image
 
+    # 1. read len of text
+    # 2. read each char of text
+    # 3. return the text
     def decode_text(self):
         ls = self.read_bits(16) #Read the text size in bytes
         l = int(ls,2)
@@ -159,7 +174,23 @@ def decode(encoded: np.array) -> str:
     return steg.decode_text()
 
 if __name__=="__main__":
-    filepath = "Steganography/bananas background zoom.png"
-    image = imread(filepath)
-    encoded_np_image = encode(image, 'Welcom to HackTrick!!!!')
-    print(decode(encoded_np_image))
+    # # filepath = "Steganography/bananas background zoom.png"
+    # # image = imread(filepath)
+    # # encoded_np_image = encode(image, 'Welcom to HackTrick!!!!')
+    # # Read the image
+    # image = imread('./SteganoGAN/sample_example/encoded.png')
+    # # # Convert the image to a NumPy array
+    # image_array = np.array(image)
+    # print(decode(image_array))
+    # l=LSBSteg(image)
+    # imag=l.encode_text('Hello World Eslam Eslam Eslam')
+    # import matplotlib.pyplot as plt
+    # plt.figure()  # Adjust the figure size as needed
+    # plt.imshow(imag, cmap='gray', aspect='auto')
+    # plt.axis('off')
+    # plt.show()
+    # l.curchan=0
+    # l.curheight=0
+    # l.curwidth=0
+    # print(l.decode_text())
+    pass

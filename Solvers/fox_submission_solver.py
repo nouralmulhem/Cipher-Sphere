@@ -3,7 +3,8 @@ import numpy as np
 from LSBSteg import encode
 from riddle_solvers import riddle_solvers
 
-api_base_url = None
+api_base_url = "http://16.16.170.3/"
+# team_id = Lu2xdzj (take care to use the same team id and start game 🧑🏼‍🚒)
 team_id=None
 
 def init_fox(team_id):
@@ -12,7 +13,17 @@ def init_fox(team_id):
     If a sucessful response is returned, you will recive back the message that you can break into chunkcs
       and the carrier image that you will encode the chunk in it.
     '''
-    pass
+    payload_sent = {
+        'teamId': team_id
+    }
+    response = requests.post(api_base_url+"/fox/start", json=payload_sent)
+    if response.status_code == 200 or response.status_code == 201:
+        data = response.json()
+        msg = data['msg']
+        carrier_image = data['carrier_image']
+    else:
+        print("error: ", response.status_code)
+    return msg, carrier_image
 
 def generate_message_array(message, image_carrier):  
     '''
@@ -34,7 +45,17 @@ def get_riddle(team_id, riddle_id):
         3. You cannot request several riddles at a time, so requesting a new riddle without answering the old one
           will allow you to answer only the new riddle and you will have no access again to the old riddle. 
     '''
-    pass
+    payload_sent = {
+        'teamId': team_id,
+        "riddleId": riddle_id
+    }
+    response = requests.post(api_base_url+"/fox/get-riddle", json=payload_sent)
+    if response.status_code == 200 or response.status_code == 201:
+        data = response.json()
+        test_case = data['test_case']
+    else:
+        print("error: ", response.status_code)
+    return test_case
 
 def solve_riddle(team_id, solution):
     '''
@@ -42,7 +63,22 @@ def solve_riddle(team_id, solution):
     You will hit the API end point that submits your answer.
     Use te riddle_solvers.py to implement the logic of each riddle.
     '''
-    pass
+    payload_sent = {
+        'teamId': team_id,
+        "solution": solution
+    }
+    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+    if response.status_code == 200 or response.status_code == 201:
+        data = response.json()
+        budget_increase = data['budget_increase']
+        total_budget = data['total_budget']
+        status = data['status']
+        if(status == "success"):
+            print("Riddle solved successfully")
+            print("Budget increased by: ", budget_increase)
+            print("Total budget: ", total_budget)
+    else:
+        print("error: ", response.status_code)
 
 def send_message(team_id, messages, message_entities=['F', 'E', 'R']):
     '''
@@ -60,6 +96,15 @@ def end_fox(team_id):
     2. Calling it without sending all the real messages will also affect your scoring fucntion
       (Like failing to submit the entire message within the timelimit of the game).
     '''
+    payload_sent = {
+        'teamId': team_id,
+    }
+    response = requests.post(api_base_url+"/fox/end-game", json=payload_sent)
+    if response.status_code == 200 or response.status_code == 201:
+        data = response.json()
+        print("Game ended successfully")
+    else:
+        print("error: ", response.status_code)
     pass
 
 def submit_fox_attempt(team_id):
