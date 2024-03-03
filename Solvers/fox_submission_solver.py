@@ -14,18 +14,16 @@ def init_fox(team_id):
     If a sucessful response is returned, you will recive back the message that you can break into chunkcs
       and the carrier image that you will encode the chunk in it.
     '''
-    # payload_sent = {
-    #     'teamId': team_id
-    # }
-    # response = requests.post(api_base_url+"/fox/start", json=payload_sent)
-    # if response.status_code == 200 or response.status_code == 201:
-    #     data = response.json()
-    #     msg = data['msg']
-    #     carrier_image = data['carrier_image']
-    # else:
-    #     print("error: ", response.status_code)
-    msg="hello"
-    carrier_image=cv2.imread('./SteganoGAN/sample_example/encoded.png')
+    payload_sent = {
+        'teamId': team_id
+    }
+    response = requests.post(api_base_url+"/fox/start", json=payload_sent)
+    if response.status_code == 200 or response.status_code == 201:
+        data = response.json()
+        msg = data['msg']
+        carrier_image = data['carrier_image']
+    else:
+        print("error: ", response.status_code)
     return msg, carrier_image
 
 def generate_message_array(message, image_carrier):  
@@ -91,6 +89,7 @@ def get_riddle(team_id, riddle_id):
     response = requests.post(api_base_url+"/fox/get-riddle", json=payload_sent)
     if response.status_code == 200 or response.status_code == 201:
         data = response.json()
+        print("Riddle requested successfully")
         test_case = data['test_case']
     else:
         print("error: ", response.status_code)
@@ -116,6 +115,8 @@ def solve_riddle(team_id, solution,total_budget):
             print("Riddle solved successfully")
             print("Budget increased by: ", budget_increase)
             print("Total budget: ", total_budget)
+        else:
+            print("Riddle not solved")
     else:
         print("error: ", response.status_code)
 

@@ -2,7 +2,10 @@
 import pandas as pd
 import torch
 from utils import *
-
+from collections import Counter
+import numpy as np
+import cv2
+from sklearn.cluster import DBSCAN
 
 def solve_cv_easy(test_case: tuple) -> list:
     shredded_image, shred_width = test_case
@@ -18,11 +21,42 @@ def solve_cv_easy(test_case: tuple) -> list:
     Returns:
     list: A list of integers representing the order of shreds. When combined in this order, it builds the whole image.
     """
-    return []
-
+    gray_image = cv2.cvtColor(shredded_image, cv2.COLOR_BGR2GRAY)
+    shreds = np.split(gray_image, gray_image.shape[1] // shred_width, axis=1)
+    visisted_shreds=set()
+    visisted_shreds.add(0)
+    def similarity_score(shred1, shred2):
+        edge1 = shred1[:, -1]
+        edge2 = shred2[:, 0]
+        eq = np.equal(edge1, edge2)
+        cnt = np.count_nonzero(eq)
+        return cnt
+    def find_best_match(shred, shreds):
+        best_score = 0
+        best_index = -1
+        for i, s in enumerate(shreds):
+            if s is shred:
+                continue
+            score = similarity_score(shred, s)
+            if score > best_score:
+                if i in visisted_shreds:
+                    continue
+                best_score = score
+                best_index = i
+        visisted_shreds.add(best_index)
+        return best_index
+    ordered_shreds = []
+    shreds_indices=[0]
+    current_shred = shreds[0]
+    while len(shreds_indices) < len(shreds):
+        ordered_shreds.append(current_shred)
+        best_index = find_best_match(current_shred, shreds)
+        shreds_indices.append(best_index)
+        current_shred = shreds[best_index]
+    return shreds_indices
 
 def solve_cv_medium(input: tuple) -> list:
-    combined_image_array , patch_image_array = test_case
+    combined_image_array , patch_image_array = input
     combined_image = np.array(combined_image_array,dtype=np.uint8)
     patch_image = np.array(patch_image_array,dtype=np.uint8)
     """
@@ -36,11 +70,54 @@ def solve_cv_medium(input: tuple) -> list:
     Returns:
     list: A list representing the real image.
     """
-    return []
+    query_img = patch_image
+    train_img = combined_image
+    train_img_bw = cv2.cvtColor(train_img, cv2.COLOR_BGR2GRAY)
+    orb = cv2.ORB_create()
+    trainKeypoints, trainDescriptors = orb.detectAndCompute(train_img_bw,None) 
+    matcher = cv2.BFMatcher() 
+    edges = cv2.Canny(train_img_bw, 100, 200)
+    contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    counts = []
+    def is_rectangle_like(contour):
+        x, y, w, h = cv2.boundingRect(contour)
+        aspect_ratio = float(w) / h
+        return 0.9 <= aspect_ratio <= 1.1
+    rectangular_contours = [c for c in contours if is_rectangle_like(c)]
+    for contour in rectangular_contours:
+        x, y, w, h = cv2.boundingRect(contour)
+        width_range = (x, x + w)
+        height_range = (y, y + h)
+        count=0
+        for keypoint in trainKeypoints:
+            x, y = keypoint.pt
+            if x >= width_range[0] and x <= width_range[1] and y >= height_range[0] and y <= height_range[1]:
+                count += 1
+        counts.append(count)
+    counts = np.array(counts)
+    max_index = np.argmax(counts)
+    max_contour = rectangular_contours[max_index]
+    matches_image_copy = train_img.copy()
+    cv2.drawContours(matches_image_copy, rectangular_contours[87:88], -1, (0, 255, 0), 3)
+    ext_left = np.min(max_contour[:, :, 0])
+    ext_right = np.max(max_contour[:, :, 0])
+    ext_top = np.min(max_contour[:, :, 1])
+    ext_bottom = np.max(max_contour[:, :, 1])
+    mask = np.zeros(train_img.shape[:2],dtype=np.uint8)  
 
+    for y in range(ext_top, ext_bottom + 1):
+        for x in range(ext_left, ext_right + 1):
+            if 0 <= x < train_img.shape[1] and 0 <= y < train_img.shape[0]:
+                mask[y, x] = 255
+    if mask.any():
+        inpainted_img = cv2.inpaint(train_img, mask, 3, cv2.INPAINT_NS)
+    else:
+        inpainted_img = train_img.copy()
+
+    return inpainted_img.tolist()
 
 def solve_cv_hard(input: tuple) -> int:
-    extracted_question, image = test_case
+    extracted_question, image = input
     image = np.array(image)
     """
     This function takes a tuple as input and returns an integer as output.
@@ -125,7 +202,10 @@ def solve_problem_solving_easy(input: tuple) -> list:
     Returns:
     list: A list of strings representing the solution to the problem.
     """
-    return []
+    words,X=input
+    word_counts = Counter(words)
+    sorted_words = sorted(word_counts, key=lambda word: (-word_counts[word], word))
+    return sorted_words[:X]
 
 
 def solve_problem_solving_medium(input: str) -> str:
@@ -138,8 +218,30 @@ def solve_problem_solving_medium(input: str) -> str:
     Returns:
     str: A string representing the solution to the problem.
     """
-    return ''
-
+    num = []
+    str_list = []
+    temp = ""
+    s=input
+    i = 0
+    while i < len(s):
+        if '0' <= s[i] <= '9':
+            n = 0
+            while '0' <= s[i] <= '9':
+                n = n * 10 + int(s[i])
+                i += 1
+            i -= 1
+            num.append(n)
+        elif s[i] == '[':
+            str_list.append(temp)
+            temp = ""
+        elif s[i] == ']':
+            t = str_list.pop()
+            n = num.pop()
+            temp = t + temp * n
+        else:
+            temp += s[i]
+        i += 1
+    return temp
 
 def solve_problem_solving_hard(input: tuple) -> int:
     """
@@ -151,7 +253,24 @@ def solve_problem_solving_hard(input: tuple) -> int:
     Returns:
     int: An integer representing the solution to the problem.
     """
-    return 0
+    def nCr(n, k):
+        if k > n - k:
+            k = n - k
+        ans = 1
+        j = 1
+        for j in range(1, k + 1):
+            if n % j == 0:
+                ans *= n // j
+            elif ans % j == 0:
+                ans = ans // j * n
+            else:
+                ans = (ans * n) // j
+            n -= 1
+        return ans
+    # solve is the most optimal solution for the given problem O(n)
+    x, y = input
+    down, right = x - 1, y - 1
+    return nCr(down + right, min(right, down))
 
 
 riddle_solvers = {
