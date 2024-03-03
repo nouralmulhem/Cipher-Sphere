@@ -33,6 +33,7 @@ class LSBSteg():
                 val[self.curchan] = int(val[self.curchan]) & self.maskZERO #AND with maskZERO
             self.image[self.curheight,self.curwidth] = tuple(val)
             self.next_slot() #Move "cursor" to the next space
+
     def next_slot(self):#Move to the next slot were information can be taken or put
         if self.curchan == self.nbchannels-1: #Next Space is the following channel
             self.curchan = 0
@@ -51,6 +52,22 @@ class LSBSteg():
                 self.curwidth +=1
         else:
             self.curchan +=1
+            
+    def next_slot2(self):
+        self.curchan += 1  # Move to the next channel
+        if self.curchan == self.nbchannels:  # If all channels are exhausted
+            self.curchan = 0  # Reset channel to the first one
+            self.curwidth += 1  # Move to the next pixel on the same line
+            if self.curwidth == self.width:  # If all pixels in the row are exhausted
+                self.curwidth = 0  # Reset pixel position to the beginning of the row
+                self.curheight += 1  # Move to the next row
+                if self.curheight == self.height:  # If all rows are exhausted
+                    self.curheight = 0  # Reset row position to the beginning
+                    if self.maskONE == 128:  # If the last mask is reached
+                        raise SteganographyException("No available slot remaining (image filled)")
+                    else:  # Use the next available mask
+                        self.maskONE = self.maskONEValues.pop(0)
+                        self.maskZERO = self.maskZEROValues.pop(0)
 
     def read_bit(self): #Read a single bit int the image
         val = self.image[self.curheight,self.curwidth][self.curchan]
@@ -179,12 +196,12 @@ if __name__=="__main__":
     # # encoded_np_image = encode(image, 'Welcom to HackTrick!!!!')
     # # Read the image
     # image = imread('./SteganoGAN/sample_example/encoded.png')
-    # # # Convert the image to a NumPy array
-    # image_array = np.array(image)
-    # print(decode(image_array))
+    # # # # Convert the image to a NumPy array
+    # # image_array = np.array(image)
+    # # print(decode(image_array))
     # l=LSBSteg(image)
-    # imag=l.encode_text('Hello World Eslam Eslam Eslam')
-    # import matplotlib.pyplot as plt
+    # imag=l.encode_text('Well')
+    # # import matplotlib.pyplot as plt
     # plt.figure()  # Adjust the figure size as needed
     # plt.imshow(imag, cmap='gray', aspect='auto')
     # plt.axis('off')
