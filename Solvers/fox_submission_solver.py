@@ -4,9 +4,10 @@ from LSBSteg import encode
 from riddle_solvers import riddle_solvers
 import cv2
 
-api_base_url = "http://16.16.170.3/"
+api_base_url = "http://3.70.97.142:5000"
+# api_base_url = "http://localhost:3005"
 # team_id = Lu2xdzj (take care to use the same team id and start game 🧑🏼‍🚒)
-team_id="xxx"
+team_id="Lu2xdzj"
 total_budget=0
 def init_fox(team_id):
     '''
@@ -18,13 +19,15 @@ def init_fox(team_id):
         'teamId': team_id
     }
     response = requests.post(api_base_url+"/fox/start", json=payload_sent)
+    print(response)
     if response.status_code == 200 or response.status_code == 201:
+        print("Game started successfully")
         data = response.json()
         msg = data['msg']
         carrier_image = data['carrier_image']
+        return msg, np.array(carrier_image)
     else:
         print("error: ", response.status_code)
-    return msg, carrier_image
 
 def generate_message_array(message, image_carrier):  
     '''
@@ -47,7 +50,7 @@ def generate_message_array(message, image_carrier):
         global total_budget
         global channel
         message_entities=['E' for _ in range(3)]
-        messages = [image_carrier for _ in range(3)]
+        messages = [image_carrier.tolist() for _ in range(3)]
         for i in range(len(fake_msg)):
             image=encode(image_carrier.copy(),fake_msg[i]).tolist()
             messages[channel]=image
@@ -61,15 +64,24 @@ def generate_message_array(message, image_carrier):
             message_entities[channel]='R'
             channel=(channel+1)%3
 
-    while(total_budget>0):
-        if(total_budget>=2):
-            sent_message(["fake","fffff"],[new_message[index]])
-        else:
-            sent_message(["fake"],[new_message[index]])
-        index+=1
-    while(index< len(new_message)):
+    if(total_budget>=2):
+        print("total_budget > 2")
+        sent_message(["fake","fffff"],[new_message[index]])
+    elif (total_budget>=1):
+        print("total_budget > 1")
+        sent_message(["fake"],[new_message[index]])
+    else:
+        print("total_budget == 0")
         sent_message([],[new_message[index]])
-        index+=1
+    # while(total_budget>0 ):
+    #     if(total_budget>=2):
+    #         sent_message(["fake","fffff"],[new_message[index]])
+    #     else:
+    #         sent_message(["fake"],[new_message[index]])
+    #     index+=1
+    # while(index< len(new_message)):
+    #     sent_message([],[new_message[index]])
+    #     index+=1
 
 
 def get_riddle(team_id, riddle_id):
@@ -91,9 +103,10 @@ def get_riddle(team_id, riddle_id):
         data = response.json()
         print("Riddle requested successfully")
         test_case = data['test_case']
+        return test_case
     else:
         print("error: ", response.status_code)
-    return test_case
+        return ''
 
 def solve_riddle(team_id, solution,total_budget):
     '''
@@ -150,7 +163,6 @@ def end_fox(team_id):
     }
     response = requests.post(api_base_url+"/fox/end-game", json=payload_sent)
     if response.status_code == 200 or response.status_code == 201:
-        data = response.json()
         print("Game ended successfully")
     else:
         print("error: ", response.status_code)
@@ -179,6 +191,8 @@ def submit_fox_attempt(team_id,total_budget):
     ## solve riddles
     for riddle_id,riddle_func in riddle_solvers.items():
         test_case = get_riddle(team_id, riddle_id)
+        if test_case == '':
+            continue
         solution = riddle_func(test_case)
         solve_riddle(team_id, solution,total_budget)
     total_budget=min(total_budget,12)
@@ -187,4 +201,5 @@ def submit_fox_attempt(team_id,total_budget):
     end_fox(team_id)
 
 
-submit_fox_attempt(team_id,total_budget)
+# submit_fox_attempt(team_id,total_budget)
+end_fox(team_id)

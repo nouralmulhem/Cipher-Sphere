@@ -1,5 +1,5 @@
 import numpy as np
-from LSBSteg import decode
+from Solvers.LSBSteg import decode
 
 api_base_url = None
 team_id=None
