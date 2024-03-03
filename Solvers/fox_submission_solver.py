@@ -189,17 +189,19 @@ def submit_fox_attempt(team_id,total_budget):
     '''
     msg, carrier_image=init_fox(team_id)
     ## solve riddles
-    for riddle_id,riddle_func in riddle_solvers.items():
-        test_case = get_riddle(team_id, riddle_id)
-        if test_case == '':
-            continue
-        solution = riddle_func(test_case)
-        solve_riddle(team_id, solution,total_budget)
+    try:
+        for riddle_id,riddle_func in riddle_solvers.items():
+            test_case = get_riddle(team_id, riddle_id)
+            if test_case == '':
+                continue
+            solution = riddle_func(test_case)
+            solve_riddle(team_id, solution,total_budget)
+    except Exception as e:
+        print(e)
     total_budget=min(total_budget,12)
     ## generate message array
     generate_message_array(msg, carrier_image)
     end_fox(team_id)
 
 
-# submit_fox_attempt(team_id,total_budget)
-end_fox(team_id)
+submit_fox_attempt(team_id,total_budget)

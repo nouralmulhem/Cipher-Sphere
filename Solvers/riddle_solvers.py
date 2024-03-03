@@ -9,7 +9,6 @@ from sklearn.cluster import DBSCAN
 def solve_cv_easy(test_case: tuple) -> list:
     shredded_image, shred_width = test_case
     shredded_image = np.array(shredded_image)
-    # cv2.imwrite("./shredded_image.jpg", shredded_image)
     """
     This function takes a tuple as input and returns a list as output.
 
@@ -59,8 +58,6 @@ def solve_cv_medium(input: tuple) -> list:
     combined_image_array , patch_image_array = input
     combined_image = np.array(combined_image_array,dtype=np.uint8)
     patch_image = np.array(patch_image_array,dtype=np.uint8)
-    # cv2.imwrite("./combined_image_array.jpg", combined_image_array)
-    # cv2.imwrite("./patch_image.jpg", patch_image)
     """
     This function takes a tuple as input and returns a list as output.
 
