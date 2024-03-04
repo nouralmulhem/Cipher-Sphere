@@ -1,6 +1,6 @@
 import requests
 import numpy as np
-from LSBSteg import decode
+from Solvers.LSBSteg import decode
 
 # api_base_url = "http://3.70.97.142:5000"
 api_base_url = "http://localhost:3005"
