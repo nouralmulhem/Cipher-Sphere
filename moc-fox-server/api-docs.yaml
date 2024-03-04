@@ -1,0 +1,1603 @@
+openapi: 3.0.0
+info:
+  title: Egyptian Premier League Match Reservation System
+  description: Egyptian Premier League Match Reservation System API documentation
+  version: 1.0.0
+servers:
+  - url: "http://localhost:3005/"
+    description: "Development server"
+tags:
+  - name: admin
+    description: Everything about admins
+  - name: user
+    description: Everything about user
+
+  - name: match
+    description: Everything about matches
+  - name: stadium
+    description: Everything about stadium
+  - name: teams
+    description: Everything about teams
+  - name: reservation
+    description: Everything about reservations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+paths:
+  /admin/approve:
+    post:
+      summary: approve regestered user
+      tags:
+        - admin
+      description: after user signup , his membership wil be apped for review from admin
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "user1"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "user approved successfully"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid username or username dosnt exist"
+
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /admin/get_appended_users:
+    get:
+      description: the output list will be sorted from recent to latest
+      summary: get list of all users waiting for approve
+      tags:
+        - admin
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        regesterAt:
+                          type: string
+                          example: "string"
+                        username:
+                          type: string
+                          example: "ahmed sayed"
+                        email:
+                          type: string
+                          example: "ahmed@gmail.com"
+                    example:
+                      - regesterAt: "string"
+                        username: "ahmed sayed"
+                        email: "ahmed@gmail.com"
+                      - regesterAt: "string"
+                        username: "ahmed sayed"
+                        email: "ahmed@gmail.com"
+                      - regesterAt: "string"
+                        username: "ahmed sayed"
+                        email: "ahmed@gmail.com"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid username or username dosnt exist"
+
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /admin/delet_user:
+    delete:
+      summary: delete existing user
+      tags:
+        - admin
+      description: delete existing user , the user might be fan or manager
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: username
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "user deleted successfully"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid username or username dosnt exist"
+
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+
+  /user/login:
+    post:
+      summary: Login user
+      tags:
+        - user
+      description: Login user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "user1"
+                password:
+                  type: string
+                  example: "123456"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  user:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        example: "fan"
+                      username:
+                        type: string
+                        example: "ahmed"
+                      password:
+                        type: string
+                        example: "ahmed"
+
+                      email:
+                        type: string
+                        example: "ahmed@madbouly"
+
+                      first_name:
+                        type: string
+                        example: "ahmed"
+                      last_name:
+                        type: string
+                        example: "ahmed"
+                      birth_of_date:
+                        type: string
+                        example: "12/4"
+                      gender:
+                        type: string
+                        example: "male"
+                      city:
+                        type: string
+                        example: "d"
+                      address:
+                        type: string
+                        example: "asd"
+
+                      regesterAt:
+                        type: string
+                        example: "asd"
+
+                      status:
+                        type: string
+                        example: "not approved"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid username or password"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /user/signup:
+    post:
+      summary: register new user
+      tags:
+        - user
+      description: address is optional, username must be unique, role  must be "fan" or "maanger",
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  example: "fan or manager"
+                username:
+                  type: string
+                  example: "user1"
+                  description: Must be unique
+                password:
+                  type: string
+                  example: "123456"
+                email:
+                  type: string
+                  example: "ahmed@gmai.com"
+                first_name:
+                  type: string
+                  example: "ahmed"
+                last_name:
+                  type: string
+                  example: "madbouly"
+                birth_of_date:
+                  type: string
+                  example: "mon/day/year"
+                gender:
+                  type: string
+                  example: "male"
+                city:
+                  type: string
+                  example: "cairo"
+                address:
+                  type: string
+                  example: "15 b 6 october"
+      responses:
+        "201":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+                  user:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        example: "fan"
+                      username:
+                        type: string
+                        example: "ahmed"
+                      password:
+                        type: string
+                        example: "ahmed"
+
+                      email:
+                        type: string
+                        example: "ahmed@madbouly"
+
+                      first_name:
+                        type: string
+                        example: "ahmed"
+                      last_name:
+                        type: string
+                        example: "ahmed"
+                      birth_of_date:
+                        type: string
+                        example: "12/4"
+                      gender:
+                        type: string
+                        example: "male"
+                      city:
+                        type: string
+                        example: "d"
+                      address:
+                        type: string
+                        example: "asd"
+
+                      regesterAt:
+                        type: string
+                        example: "asd"
+
+                      status:
+                        type: string
+                        example: "not approved"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "username already exist "
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /user:
+    put:
+      summary: Update user information
+      tags:
+        - user
+      description: all parameters are optional , sended parameters only will be updated. role will be changed by the admin only "assumsion from me not in the document"
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                  example: "123456"
+                first_name:
+                  type: string
+                  example: "ahmed"
+                last_name:
+                  type: string
+                  example: "madbouly"
+                birth_of_date:
+                  type: string
+                  example: "mon/day/year"
+                gender:
+                  type: string
+                  example: "male"
+                city:
+                  type: string
+                  example: "cairo"
+                address:
+                  type: string
+                  example: "15 b 6 october"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "user updated successfully"
+                  user:
+                    type: object
+                    properties:
+                      role:
+                        type: string
+                        example: "fan"
+                      username:
+                        type: string
+                        example: "ahmed"
+                      password:
+                        type: string
+                        example: "ahmed"
+
+                      email:
+                        type: string
+                        example: "ahmed@madbouly"
+
+                      first_name:
+                        type: string
+                        example: "ahmed"
+                      last_name:
+                        type: string
+                        example: "ahmed"
+                      birth_of_date:
+                        type: string
+                        example: "12/4"
+                      gender:
+                        type: string
+                        example: "male"
+                      city:
+                        type: string
+                        example: "d"
+                      address:
+                        type: string
+                        example: "asd"
+
+                      regesterAt:
+                        type: string
+                        example: "asd"
+
+                      status:
+                        type: string
+                        example: "not approved"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters "
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+                    
+  /match:
+    post:
+      summary: create new mach
+      tags:
+        - match
+      description: the token must be for manager user , home team must be deffrint from away team
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                home_team_id:
+                  type: integer
+                  example: 1
+                away_team_id:
+                  type: integer
+                  example: 2
+                match_venue_id:
+                  type: integer
+                  example: 2
+                date:
+                  type: string
+                  example: "10/23/2024"
+                time:
+                  type: string
+                  example: "20:45"
+                main_referee:
+                  type: string
+                  example: "mohamed ahemd"
+                linesmen1:
+                  type: string
+                  example: "yasser"
+                linesmen2:
+                  type: string
+                  example: "mohamed sad"
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "match created successfully"
+                  match:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      home_team_id:
+                        type: integer
+                        example: 1
+                      away_team_id:
+                        type: integer
+                        example: 2
+                      match_venue_id:
+                        type: integer
+                        example: 2
+                      date:
+                        type: string
+                        example: "10/23/2024"
+                      time:
+                        type: string
+                        example: "20:45"
+                      main_referee:
+                        type: string
+                        example: "mohamed ahemd"
+                      linesmen1:
+                        type: string
+                        example: "yasser"
+                      linesmen2:
+                        type: string
+                        example: "mohamed sad"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters "
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+
+    put:
+      summary: Update mach deails
+      tags:
+        - match
+      description: token must be from manager user , all feilds in the body is optional , any provided field will be changed. only the id must be provided
+
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 2
+                home_team_id:
+                  type: integer
+                  example: 1
+                away_team_id:
+                  type: integer
+                  example: 3
+                match_venue_id:
+                  type: integer
+                  example: 1
+                date:
+                  type: string
+                  example: "10/23/2024"
+                time:
+                  type: string
+                  example: "20:45"
+                main_referee:
+                  type: string
+                  example: "mohamed yasswe ahmed"
+                linesmen1:
+                  type: string
+                  example: "yasser"
+                linesmen2:
+                  type: string
+                  example: "mohamed sad"
+      responses:
+        "200":
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "match updated successfully"
+                  match:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      home_team_id:
+                        type: integer
+                        example: 1
+                      away_team_id:
+                        type: integer
+                        example: 2
+                      match_venue_id:
+                        type: integer
+                        example: 2
+                      date:
+                        type: string
+                        example: "10/23/2024"
+                      time:
+                        type: string
+                        example: "20:45"
+                      main_referee:
+                        type: string
+                        example: "mohamed ahemd"
+                      linesmen1:
+                        type: string
+                        example: "yasser"
+                      linesmen2:
+                        type: string
+                        example: "mohamed sad"
+
+        "400":
+          description: Bad Request due to invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "home team and away team can't be the same"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+    get:
+      summary: get specific mach details
+      tags:
+        - match
+      description: get specific mach details , note that there is another endoint to get all maches,vacant_seats and reserved_seats will return as list of elements , each element is list of two numbers (row and coloum ) we will return it as you provide in endpoint "reserve ticket for mach"
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  date:
+                    example: "2024-10-22T22:00:00.000Z"
+                  time:
+                    example: "20:45:00"
+                  main_referee:
+                    example: "male"
+                  linesmen1:
+                    example: "cairo"
+                  linesmen2:
+                    example: "15 b 6 october"
+                  home_team_id:
+                    example: 1
+                  away_team_id:
+                    example: 2
+                  match_venue_id:
+                    example: 2
+                  home_team:
+                    example:
+                      id: 1
+                      name: "team1"
+                  away_team:
+                    example:
+                      id: 2
+                      name: "team2"
+                  match_venue:
+                    example:
+                      id: 2
+                      name: "stadium2"
+                      dimension1: 3
+                      dimension2: 4
+
+                  num_booked_seats:
+                    type: integer
+                    example: 12
+                  num_vacant_seats:
+                    type: integer
+                    example: 12
+                  reserved_seats:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: integer
+                    example:
+                      - [1, 2]
+                      - [2, 2]
+                      - [3, 3]
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid id"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /match/all/upcomming:
+    get:
+      summary: get list of all upcomming maches
+      tags:
+        - match
+      description: this endpoint will provide the list for all upcomming maches,
+
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  upcomming:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        home_team:
+                          type: string
+                          example: "Team A"
+                        away_team:
+                          type: string
+                          example: "Team B"
+                        match_id:
+                          type: integer
+                          example: 2
+                        date_time:
+                          type: string
+                          example: "mon/day/year"
+                    example:
+                      - home_team: "Team A"
+                        away_team: "Team B"
+                        match_id: 1
+                        date_time: "date_time"
+                      - home_team: "Team C"
+                        away_team: "Team D"
+                        match_id: 2
+                        date_time: "date_time"
+                      - home_team: "Team E"
+                        away_team: "Team F"
+                        match_id: 3
+                        date_time: "date_time"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /match/all/past:
+    get:
+      summary: get list of all past maches
+      tags:
+        - match
+      description: this endpoint will provide the list for all past maches
+
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  past:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        home_team:
+                          type: string
+                          example: "Team A"
+                        away_team:
+                          type: string
+                          example: "Team B"
+                        match_id:
+                          type: integer
+                          example: 2
+                        date_time:
+                          type: string
+                          example: "mon/day/year"
+                    example:
+                      - home_team: "Team A"
+                        away_team: "Team B"
+                        match_id: 1
+                        date_time: "date_time"
+                      - home_team: "Team C"
+                        away_team: "Team D"
+                        match_id: 2
+                        date_time: "date_time"
+                      - home_team: "Team E"
+                        away_team: "Team F"
+                        match_id: 3
+                        date_time: "date_time"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  
+  /team:
+    post:
+      summary: create new team
+      tags:
+        - team
+      description: the token must be for manager user
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "El-Ahly"
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "team created successfully"
+                  team:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "El-Ahly"
+                     
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters "
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+
+    put:
+      summary: Update team details
+      tags:
+        - team
+      description: token must be from manager user , all feilds in the body is optional , any provided field will be changed. only the id must be provided
+
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 2
+                name:
+                  type: string
+                  example: "El-Ahly"
+                
+      responses:
+        "200":
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "team updated successfully"
+                  team:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "El-Ahly"
+                      
+
+        "400":
+          description: Bad Request due to invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "home team and away team can't be the same"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+    get:
+      summary: get specific team details
+      tags:
+        - team
+      description: get specific team details , note that there is another endoint to get all teams will return as list of elements
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    example: "El-Ahly"
+                  
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid id"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+    delete:
+      summary: delete existing team
+      tags:
+        - team
+      description: delete existing team
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: team_name
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "team deleted successfully"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid team or it doesn't exist"
+
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /team/all/:
+    get:
+      summary: get list of all teams
+      tags:
+        - team
+      description: this endpoint will provide the list for all 18 teams,
+
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  teams:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "El-Ahly"
+
+                    example:
+                      - id: "1"
+                        name: "El-Ahly"
+                      - id: "2"
+                        name: "Zamalek"
+                      - id: "3"
+                        name: "Pyramids"
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+
+  /stadium:
+    post:
+      summary: create new stadium
+      tags:
+        - stadium
+      description: the token must be for manager user
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Cairo International Stadium"
+                dimension1:
+                  type: integer
+                  example: 64
+                dimension2:
+                  type: integer
+                  example: 75
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "stadium created successfully"
+                  team:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "Cairo International Stadium"
+                      dimension1:
+                        type: integer
+                        example: 64
+                      dimension2:
+                        type: integer
+                        example: 75
+                     
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters "
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+
+    put:
+      summary: Update stadium details
+      tags:
+        - stadium
+      description: token must be from manager user , all feilds in the body is optional , any provided field will be changed. only the id must be provided
+
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  example: 2
+                name:
+                  type: string
+                  example: "Cairo International Stadium"
+                dimension1:
+                  type: integer
+                  example: 64
+                dimension2:
+                  type: integer
+                  example: 75
+                
+      responses:
+        "200":
+          description: Successful update
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "team updated successfully"
+                  stadium:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: "Cairo International Stadium"
+                      dimension1:
+                        type: integer
+                        example: 64
+                      dimension2:
+                        type: integer
+                        example: 75
+                      
+
+        "400":
+          description: Bad Request due to invalid parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "stadium already exists"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+    get:
+      summary: get specific stadium details
+      tags:
+        - stadium
+      description: get specific stadium details , note that there is another endoint to get all stadiums will return as list of elements
+      parameters:
+        - in: query
+          name: id
+          required: true
+          schema:
+            type: integer
+
+      responses:
+        "200":
+          description: Ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  name:
+                    type: string
+                    example: "Cairo International Stadium"
+                  dimension1:
+                    type: integer
+                    example: 64
+                  dimension2:
+                    type: integer
+                    example: 75
+                  
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid id"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+    delete:
+      summary: delete existing stadium
+      tags:
+        - stadium
+      description: delete existing stadium
+      security:
+        - bearerAuth: [] # Reference to the security scheme
+      parameters:
+        - in: header
+          name: token
+          description: Bearer token for authentication
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: stadium_name
+          required: true
+          schema:
+            type: string
+
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "stadium deleted successfully"
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid stadium or it doesn't exist"
+
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
+  /stadium/all/:
+    get:
+      summary: get list of all stadiums
+      tags:
+        - team
+      description: this endpoint will provide the list for all stadiums,
+
+      responses:
+        "201":
+          description: Successful create
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stadiums:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "Cairo International Stadium"
+                        dimension1:
+                          type: integer
+                          example: 64
+                        dimension2:
+                          type: integer
+                          example: 75
+
+                    example:
+                      - id: "1"
+                        name: "Cairo International Stadium"
+                        dimension1: 64
+                        dimension2: 75
+                      - id: "2"
+                        name: "Borg El-Arab Stadium"
+                        dimension1: 44
+                        dimension2: 35
+                      - id: "3"
+                        name: "Al-Salam Stadium"
+                        dimension1: 74
+                        dimension2: 85
+
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "invalid parameters"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "internal server error"
