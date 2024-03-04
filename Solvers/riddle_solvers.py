@@ -5,8 +5,10 @@ from collections import Counter
 import numpy as np
 import cv2
 from sklearn.cluster import DBSCAN
-from SteganoGAN.utils import decode
+from utils import *
 from statsmodels.tsa.arima.model import ARIMA
+from array_ml import array_ml_medium
+from scipy.spatial.distance import cdist
 
 def solve_cv_easy(test_case: tuple) -> list:
     shredded_image, shred_width = test_case
@@ -161,8 +163,15 @@ def solve_ml_medium(input: list) -> int:
     Returns:
     int: An integer representing the output of the function.
     """
-    return 0
-
+    x=input[0]
+    y=input[1]
+    point = np.array([[x, y]])
+    distances = cdist(point, array_ml_medium, 'euclidean')
+    
+    min_dist = np.min(distances)
+    if(min_dist <=1):
+        return 0
+    return -1
 
 
 def solve_sec_medium(input) -> str:
