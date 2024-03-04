@@ -155,7 +155,7 @@ def decode(generated: torch.Tensor) -> str:
     return text_return
 
 
-# image_path = './sample_example/encoded.png'
+# image_path = 'SteganoGAN/sample_example/encoded.png'
 # image = Image.open(image_path)
 # transform = transforms.Compose([
 #     transforms.ToTensor(),

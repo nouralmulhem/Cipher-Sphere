@@ -9,7 +9,17 @@ from utils import *
 from statsmodels.tsa.arima.model import ARIMA
 from array_ml import array_ml_medium
 from scipy.spatial.distance import cdist
+from collections import Counter
+from reedsolo import RSCodec
+import zlib
+from decoders import DenseDecoder
+from critics import BasicCritic
+import torch
+from torch.optim import Adam
+from PIL import Image
+import torchvision.transforms as transforms
 
+import warnings 
 def solve_cv_easy(test_case: tuple) -> list:
     shredded_image, shred_width = test_case
     shredded_image = np.array(shredded_image,dtype=np.uint8)
@@ -175,7 +185,12 @@ def solve_ml_medium(input: list) -> int:
 
 
 def solve_sec_medium(input) -> str:
-    img = torch.tensor(input)
+    transform = transforms.Compose([
+    transforms.ToTensor(),
+    ])
+    tensor_image = transform(input)
+    img = tensor_image.unsqueeze(0)
+    # img = torch.tensor(input)
     """
     This function takes a torch.Tensor as input and returns a string as output.
 
@@ -185,7 +200,7 @@ def solve_sec_medium(input) -> str:
     Returns:
     str: A string representing the decoded message from the image.
     """
-    out = decode(img.unsqueeze(0))
+    out = decode(img)
 
     return out
 
