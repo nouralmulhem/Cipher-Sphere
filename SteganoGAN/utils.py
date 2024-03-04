@@ -4,9 +4,11 @@ from reedsolo import RSCodec
 import zlib
 from decoders import DenseDecoder
 from critics import BasicCritic
-
 import torch
 from torch.optim import Adam
+from PIL import Image
+import torch
+import torchvision.transforms as transforms
 
 import warnings 
 warnings.filterwarnings('ignore')
@@ -151,3 +153,13 @@ def make_message(image):
 def decode(generated: torch.Tensor) -> str:
     text_return = make_message(generated)
     return text_return
+
+
+# image_path = './sample_example/encoded.png'
+# image = Image.open(image_path)
+# transform = transforms.Compose([
+#     transforms.ToTensor(),
+# ])
+# tensor_image = transform(image)
+# out = decode(tensor_image.unsqueeze(0))
+# print(out)
