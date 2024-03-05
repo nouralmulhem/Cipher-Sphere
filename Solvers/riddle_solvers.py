@@ -217,103 +217,84 @@ def solve_sec_hard(input:tuple)->str:
     Returns:
     list:A string of ciphered text
     """
-
     def hex2bin(s):
-        mp = {'0': "0000",
-            '1': "0001",
-            '2': "0010",
-            '3': "0011",
-            '4': "0100",
-            '5': "0101",
-            '6': "0110",
-            '7': "0111",
-            '8': "1000",
-            '9': "1001",
-            'A': "1010",
-            'B': "1011",
-            'C': "1100",
-            'D': "1101",
-            'E': "1110",
-            'F': "1111"}
-        bin = ""
-        for i in range(len(s)):
-            bin = bin + mp[s[i]]
-        return bin
-
+        hex_to_bin_mapping = {'0': "0000",
+                            '1': "0001",
+                            '2': "0010",
+                            '3': "0011",
+                            '4': "0100",
+                            '5': "0101",
+                            '6': "0110",
+                            '7': "0111",
+                            '8': "1000",
+                            '9': "1001",
+                            'A': "1010",
+                            'B': "1011",
+                            'C': "1100",
+                            'D': "1101",
+                            'E': "1110",
+                            'F': "1111"}
+        binary_result = ""
+        for char in s:
+            binary_result += hex_to_bin_mapping[char]
+        return binary_result
     def bin2hex(s):
-        mp = {"0000": '0',
-            "0001": '1',
-            "0010": '2',
-            "0011": '3',
-            "0100": '4',
-            "0101": '5',
-            "0110": '6',
-            "0111": '7',
-            "1000": '8',
-            "1001": '9',
-            "1010": 'A',
-            "1011": 'B',
-            "1100": 'C',
-            "1101": 'D',
-            "1110": 'E',
-            "1111": 'F'}
-        hex = ""
+        bin_to_hex_mapping = {"0000": '0',
+                            "0001": '1',
+                            "0010": '2',
+                            "0011": '3',
+                            "0100": '4',
+                            "0101": '5',
+                            "0110": '6',
+                            "0111": '7',
+                            "1000": '8',
+                            "1001": '9',
+                            "1010": 'A',
+                            "1011": 'B',
+                            "1100": 'C',
+                            "1101": 'D',
+                            "1110": 'E',
+                            "1111": 'F'}
+        hex_result = ""
         for i in range(0, len(s), 4):
-            ch = ""
-            ch = ch + s[i]
-            ch = ch + s[i + 1]
-            ch = ch + s[i + 2]
-            ch = ch + s[i + 3]
-            hex = hex + mp[ch]
+            bin_chunk = s[i:i+4]
+            hex_result += bin_to_hex_mapping[bin_chunk]
 
-        return hex
-
+        return hex_result
     def bin2dec(binary):
+        original_binary = binary
+        decimal, power, digit_position = 0, 0, 0
+        while binary != 0:
+            digit = binary % 10
+            decimal += digit * 2**power
+            binary = binary // 10
+            power += 1
 
-        binary1 = binary
-        decimal, i, n = 0, 0, 0
-        while(binary != 0):
-            dec = binary % 10
-            decimal = decimal + dec * pow(2, i)
-            binary = binary//10
-            i += 1
         return decimal
-
     def dec2bin(num):
-        res = bin(num).replace("0b", "")
-        if(len(res) % 4 != 0):
-            div = len(res) / 4
-            div = int(div)
-            counter = (4 * (div + 1)) - len(res)
-            for i in range(0, counter):
-                res = '0' + res
-        return res
+        binary_result = bin(num).replace("0b", "")
+        if len(binary_result) % 4 != 0:
+            padding_needed = (4 - len(binary_result) % 4) % 4
+            binary_result = '0' * padding_needed + binary_result
 
-    def permute(k, arr, n):
-        permutation = ""
-        for i in range(0, n):
-            permutation = permutation + k[arr[i] - 1]
-        return permutation
+        return binary_result
+    def permute(input_str, permutation_array, size):
+        result = ""
+        for i in range(size):
+            result += input_str[permutation_array[i] - 1]
+        return result
 
-    def shift_left(k, nth_shifts):
-        s = ""
-        for i in range(nth_shifts):
-            for j in range(1, len(k)):
-                s = s + k[j]
-            s = s + k[0]
-            k = s
-            s = ""
-        return k
+    def shift_left(input_str, nth_shifts):
+        shifted_str = input_str
+        for _ in range(nth_shifts):
+            shifted_str = shifted_str[1:] + shifted_str[0]
+        return shifted_str
 
     def xor(a, b):
-        ans = ""
+        result = ""
         for i in range(len(a)):
-            if a[i] == b[i]:
-                ans = ans + "0"
-            else:
-                ans = ans + "1"
-        return ans
-
+            result += "0" if a[i] == b[i] else "1"
+        return result
 
     initial_perm = [58, 50, 42, 34, 26, 18, 10, 2,
                     60, 52, 44, 36, 28, 20, 12, 4,
@@ -390,44 +371,48 @@ def solve_sec_hard(input:tuple)->str:
                 33, 1, 41, 9, 49, 17, 57, 25]
 
 
-    def encrypt(pt, rkb, rk):
-        pt = hex2bin(pt)
-        pt = permute(pt, initial_perm, 64)
-        left = pt[0:32]
-        right = pt[32:64]
-        for i in range(0, 16):
-            right_expanded = permute(right, exp_d, 48)
-            xor_x = xor(right_expanded, rkb[i])
+    def encrypt(plaintext, round_key_bits, round_key_hex):
+        plaintext_binary = hex2bin(plaintext)
+        permuted_plaintext = permute(plaintext_binary, initial_perm, 64)
+        
+        left_half = permuted_plaintext[:32]
+        right_half = permuted_plaintext[32:]
+
+        for i in range(16):
+            right_expanded = permute(right_half, exp_d, 48)
+            xor_result = xor(right_expanded, round_key_bits[i])
+            
             sbox_str = ""
-            for j in range(0, 8):
-                row = bin2dec(int(xor_x[j * 6] + xor_x[j * 6 + 5]))
-                col = bin2dec(
-                    int(xor_x[j * 6 + 1] + xor_x[j * 6 + 2] + xor_x[j * 6 + 3] + xor_x[j * 6 + 4]))
+            for j in range(8):
+                row = bin2dec(int(xor_result[j * 6] + xor_result[j * 6 + 5]))
+                col = bin2dec(int(xor_result[j * 6 + 1: j * 6 + 5]))
                 val = sbox[j][row][col]
-                sbox_str = sbox_str + dec2bin(val)
+                sbox_str += dec2bin(val)
 
             sbox_str = permute(sbox_str, per, 32)
-            result = xor(left, sbox_str)
-            left = result
-            if(i != 15):
-                left, right = right, left
-        combine = left + right
+            result = xor(left_half, sbox_str)
+            left_half = result
 
-        cipher_text = permute(combine, final_perm, 64)
-        return cipher_text
+            if i != 15:
+                left_half, right_half = right_half, left_half
+
+        combined_text = left_half + right_half
+        ciphertext = permute(combined_text, final_perm, 64)
+        return ciphertext
+    
     key,pt=input
-    key = hex2bin(key)
+    key_binary = hex2bin(key)
 
-    keyp = [57, 49, 41, 33, 25, 17, 9,
-            1, 58, 50, 42, 34, 26, 18,
-            10, 2, 59, 51, 43, 35, 27,
-            19, 11, 3, 60, 52, 44, 36,
-            63, 55, 47, 39, 31, 23, 15,
-            7, 62, 54, 46, 38, 30, 22,
-            14, 6, 61, 53, 45, 37, 29,
-            21, 13, 5, 28, 20, 12, 4]
+    key_permutation = [57, 49, 41, 33, 25, 17, 9,
+                    1, 58, 50, 42, 34, 26, 18,
+                    10, 2, 59, 51, 43, 35, 27,
+                    19, 11, 3, 60, 52, 44, 36,
+                    63, 55, 47, 39, 31, 23, 15,
+                    7, 62, 54, 46, 38, 30, 22,
+                    14, 6, 61, 53, 45, 37, 29,
+                    21, 13, 5, 28, 20, 12, 4]
 
-    key = permute(key, keyp, 56)
+    key = permute(key_binary, key_permutation, 56)
 
     shift_table = [1, 1, 2, 2,
                 2, 2, 2, 2,
@@ -443,23 +428,26 @@ def solve_sec_hard(input:tuple)->str:
                 44, 49, 39, 56, 34, 53,
                 46, 42, 50, 36, 29, 32]
 
-    left = key[0:28]
-    right = key[28:56]
+    left_half = key[:28]
+    right_half = key[28:]
 
-    rkb = []
-    rk = []
-    for i in range(0, 16):
-        left = shift_left(left, shift_table[i])
-        right = shift_left(right, shift_table[i])
-        combine_str = left + right
-        round_key = permute(combine_str, key_comp, 48)
+    round_key_bits = []
+    round_key_hex = []
 
-        rkb.append(round_key)
-        rk.append(bin2hex(round_key))
+    for i in range(16):
+        left_half = shift_left(left_half, shift_table[i])
+        right_half = shift_left(right_half, shift_table[i])
+        combined_str = left_half + right_half
+        round_key = permute(combined_str, key_comp, 48)
 
-    cipher_text = bin2hex(encrypt(pt, rkb, rk))
+        round_key_bits.append(round_key)
+        round_key_hex.append(bin2hex(round_key))
+
+    cipher_text = bin2hex(encrypt(pt, round_key_bits, round_key_hex))
     return cipher_text
 
+
+# print(solve_sec_hard(('266200199BBCDFF1', '0123456789ABCDEF')))
 def solve_problem_solving_easy(input: tuple) -> list:
     """
     This function takes a tuple as input and returns a list as output.
@@ -523,24 +511,23 @@ def solve_problem_solving_hard(input: tuple) -> int:
     Returns:
     int: An integer representing the solution to the problem.
     """
-    def nCr(n, k):
+    def calculate_combination(n, k):
         if k > n - k:
             k = n - k
-        ans = 1
-        j = 1
+        result = 1
         for j in range(1, k + 1):
             if n % j == 0:
-                ans *= n // j
-            elif ans % j == 0:
-                ans = ans // j * n
+                result *= n // j
+            elif result % j == 0:
+                result = result // j * n
             else:
-                ans = (ans * n) // j
+                result = (result * n) // j
             n -= 1
-        return ans
+        return result
     # solve is the most optimal solution for the given problem O(n)
     x, y = input
     down, right = x - 1, y - 1
-    return nCr(down + right, min(right, down))
+    return calculate_combination(down + right, min(right, down))
 
 
 # riddle_solvers = {
