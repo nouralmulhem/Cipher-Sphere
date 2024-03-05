@@ -38,6 +38,8 @@ def select_channel(footprint):
     '''
     foorprint = {
     '1': spect,
+    '2': spect,
+    '3': spect
     }
     for i in footpring:
         call model (footprint)
