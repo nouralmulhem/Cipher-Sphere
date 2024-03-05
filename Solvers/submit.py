@@ -53,10 +53,10 @@ def send_message(team_id, messages, message_entities=['F', 'F', 'R']):
         "message_entities":message_entities
     }
     response = requests.post(api_base_url+"/fox/send-message", json=payload_sent)
-    if response.status_code == 200 or response.status_code == 201:
-       print("Message sent successfully")
-    else:
-        print("error: ", response.status_code)
+    # if response.status_code == 200 or response.status_code == 201:
+    #    print("Message sent successfully")
+    # else:
+    #     print("error: ", response.status_code)
    
 def prepare_message(fake_msg,real_msg,total_budget,channel,team_id,image_carrier):
     message_entities = ['E' for _ in range(3)]
@@ -180,6 +180,7 @@ def fail_riddle(team_id):
     
 
 
+
 msg, carrier_image,carrier_image2=init_fox(team_id)
 
 
@@ -216,7 +217,7 @@ riddle_id="cv_easy"
 test_case_cv_easy = get_riddle(team_id, riddle_id)
 # print(test_case_cv_easy)
 solution_5 = solve_cv_easy(test_case_cv_easy)
-solve_riddle(team_id, solution_5,total_budget)
+total_budget = solve_riddle(team_id, solution_5,total_budget)
 
 
 
@@ -226,22 +227,27 @@ try:
     test_case_ml_easy = get_riddle(team_id, riddle_id)
     # print(test_case_ml_easy)
     solution_6 = solve_ml_easy(test_case_ml_easy)
+    total_budget = solve_riddle(team_id, solution_6,total_budget)
 except Exception as e:
     print('error in ml_easy')
     print(e)
 
 
-
-# fail_riddle(team_id)
-# payload_sent = {
-#         'teamId': team_id,
-#         "solution": [1.3,1.9]
-#     }
-# response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-# print(response)
-
-
-
+try:
+    riddle_id="ml_medium"
+    test_case_ml_medium = get_riddle(team_id, riddle_id)
+    # print(test_case_ml_medium)
+    solution_7 = solve_ml_medium(test_case_ml_medium)
+    total_budget = solve_riddle(team_id, solution_7,total_budget)
+except Exception as e:
+    payload_sent = {
+            'teamId': team_id,
+            "solution": -1
+        }
+    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+    print('error in ml_medium')
+    print(e)
+    
 
 
 
@@ -250,62 +256,39 @@ try:
     test_case_sec_medium_stegano = get_riddle(team_id, riddle_id)
     # print(test_case_sec_medium_stegano)
     solution_9 =solve_sec_medium( np.transpose(test_case_sec_medium_stegano[0], (1, 2, 0)) ) 
-    solve_riddle(team_id, solution_9,total_budget)
-
+    total_budget = solve_riddle(team_id, solution_9,total_budget)
 except Exception as e:
     payload_sent = {
             'teamId': team_id,
-            "solution": "Beyond The Obvious."
+            "solution": "Beyo."
         }
     response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-
     print('error in test_case_sec_medium_stegano')
     print(e)
 
 
-
-
 # try:
-#     riddle_id="ml_medium"
-#     test_case_ml_medium = get_riddle(team_id, riddle_id)
-#     # print(test_case_ml_medium)
-#     solution_7 = solve_ml_medium(test_case_ml_medium)
-#     # solve_riddle(team_id, solution_7,total_budget)
+#     riddle_id="cv_medium"
+#     test_case_cv_medium = get_riddle(team_id, riddle_id)
+#     # # print(test_case_cv_medium)
+#     # solution_8 = solve_cv_medium(test_case_cv_medium)
+#     combined_image_array , patch_image_array = test_case_cv_medium
+#     payload_sent = {
+#             'teamId': team_id,
+#             "solution": combined_image_array
+#     }
+#     response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
 # except Exception as e:
 #     payload_sent = {
 #             'teamId': team_id,
-#             "solution": -1
-#         }
-#     response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-#     print('error in ml_medium')
-#     print(e)
-    
-
-
-
-# riddle_id="cv_hard"
-# test_case_cv_hard = get_riddle(team_id, riddle_id)
-# image = test_case_cv_hard[1]
-# cv2.imshow(test_case_cv_hard[0],np.array(image).astype(np.uint8))
-
-# # Wait for user input
-# user_input = cv2.waitKey(0)
-
-# cv2.destroyAllWindows()
-# user_input = int(input("Enter the number: "))
-
-# payload_sent = {
-#         'teamId': team_id,
-#         "solution": user_input
+#             "solution": []
 #     }
-# response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-# print(response)
-
-
-
+#     response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+#     print('error in cv_medium')
+#     print(e)
 
 generate_message_array(msg[:5], carrier_image,total_budget,team_id)
 generate_message_array(msg[5:10], carrier_image,total_budget,team_id)
 generate_message_array(msg[10:], carrier_image,total_budget,team_id)
 rsponse_end = end_fox("Lu2xdzj")
-print(rsponse_end)
+print(rsponse_end.text)
