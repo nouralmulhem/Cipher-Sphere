@@ -189,6 +189,7 @@ def solve_sec_medium(input) -> str:
     ])
     tensor_image = transform(input)
     img = tensor_image.unsqueeze(0)
+    img= img.float()
     # img = torch.tensor(input)
     """
     This function takes a torch.Tensor as input and returns a string as output.
