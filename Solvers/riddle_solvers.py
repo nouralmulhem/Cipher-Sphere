@@ -151,10 +151,8 @@ def solve_ml_easy(input) -> list:
 
     """
     This function takes a pandas DataFrame as input and returns a list as output.
-
     Parameters:
     input (pd.DataFrame): A pandas DataFrame representing the input data.
-
     Returns:
     list: A list of floats representing the output of the function.
     """
@@ -173,15 +171,16 @@ def solve_ml_medium(input: list) -> int:
     Returns:
     int: An integer representing the output of the function.
     """
-    x=input[0]
-    y=input[1]
+    x=abs(input[0])
+    y=abs(input[1])
     point = np.array([[x, y]])
     distances = cdist(point, array_ml_medium, 'euclidean')
-    
     min_dist = np.min(distances)
     if(min_dist <=1):
         return 0
     return -1
+
+
 
 
 def solve_sec_medium(input) -> str:
