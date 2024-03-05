@@ -161,7 +161,7 @@ def solve_ml_easy(input) -> list:
     model = ARIMA(data["visits"],order=(7,0,1))
     model_fit = model.fit()
     forecast = model_fit.forecast(steps=50)
-    return forecast.tolist
+    return forecast.tolist()
 
 def solve_ml_medium(input: list) -> int:
     """
