@@ -30,6 +30,7 @@ const riddles_out = {
   sec_medium_stegano: "",
 };
 const startService = async (data) => {
+  console.log(data);
   const { teamId } = data;
   if (!teamId) {
     throw {
@@ -56,6 +57,8 @@ const startService = async (data) => {
   };
 };
 const get_riddleService = async (data) => {
+  console.log(data);
+
   const { teamId, riddleId } = data;
   if (!teamId || !riddleId) {
     throw {
@@ -83,6 +86,8 @@ const get_riddleService = async (data) => {
   };
 };
 const solve_riddleService = async (data) => {
+  console.log(data);
+
   const { teamId, solution } = data;
   if (!teamId || !solution) {
     throw {
@@ -113,7 +118,9 @@ const send_messageService = async (data) => {
   // are converted to a list using NumPy’s tolist() method..
   // – message entities (array): An array of three characters representing the validity
   // of each message (R for real, F for fake, E for empty).
+  console.log(data);
   const { teamId, messages, message_entities } = data;
+
   if (!teamId || !messages || !message_entities) {
     throw {
       status: 400,
@@ -155,6 +162,8 @@ const send_messageService = async (data) => {
   };
 };
 const end_gameService = async (data) => {
+  console.log(data);
+
   const { teamId } = data;
   if (!teamId) {
     throw {
