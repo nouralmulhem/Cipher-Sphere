@@ -1,25 +1,15 @@
 # Add the necessary imports here
 import pandas as pd
-import torch
 from collections import Counter
 import numpy as np
 import cv2
-from sklearn.cluster import DBSCAN
 from utils import *
 from statsmodels.tsa.arima.model import ARIMA
 from array_ml import array_ml_medium
-from scipy.spatial.distance import cdist
 from collections import Counter
-from reedsolo import RSCodec
-import zlib
-from decoders import DenseDecoder
-from critics import BasicCritic
-import torch
-from torch.optim import Adam
-from PIL import Image
 import torchvision.transforms as transforms
+import heapq
 
-import warnings 
 def solve_cv_easy(test_case: tuple) -> list:
     shredded_image, shred_width = test_case
     shredded_image = np.array(shredded_image,dtype=np.uint8)
@@ -36,8 +26,8 @@ def solve_cv_easy(test_case: tuple) -> list:
     """
     gray_image = cv2.cvtColor(shredded_image, cv2.COLOR_BGR2GRAY)
     shreds = np.split(gray_image, gray_image.shape[1] // shred_width, axis=1)
-    visisted_shreds=set()
-    visisted_shreds.add(0)
+
+    visisted_shreds = {0}
     def similarity_score(shred1, shred2):
         edge1 = shred1[:, -1]
         edge2 = shred2[:, 0]
@@ -66,69 +56,71 @@ def solve_cv_easy(test_case: tuple) -> list:
         best_index = find_best_match(current_shred, shreds)
         shreds_indices.append(best_index)
         current_shred = shreds[best_index]
+        if len(visisted_shreds) == len(shreds):
+            break
     return shreds_indices
 
 def solve_cv_medium(input: tuple) -> list:
     combined_image_array , patch_image_array = input
     return combined_image_array
-    combined_image = np.array(combined_image_array,dtype=np.uint8)
-    patch_image = np.array(patch_image_array,dtype=np.uint8)
-    """
-    This function takes a tuple as input and returns a list as output.
+    # combined_image = np.array(combined_image_array,dtype=np.uint8)
+    # patch_image = np.array(patch_image_array,dtype=np.uint8)
+    # """
+    # This function takes a tuple as input and returns a list as output.
 
-    Parameters:
-    input (tuple): A tuple containing two elements:
-        - A numpy array representing the RGB base image.
-        - A numpy array representing the RGB patch image.
+    # Parameters:
+    # input (tuple): A tuple containing two elements:
+    #     - A numpy array representing the RGB base image.
+    #     - A numpy array representing the RGB patch image.
 
-    Returns:
-    list: A list representing the real image.
-    """
-    query_img = patch_image
-    train_img = combined_image
-    train_img_bw = cv2.cvtColor(train_img, cv2.COLOR_BGR2GRAY)
-    orb = cv2.ORB_create()
-    trainKeypoints, trainDescriptors = orb.detectAndCompute(train_img_bw,None) 
-    matcher = cv2.BFMatcher() 
-    edges = cv2.Canny(train_img_bw, 100, 200)
-    contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    counts = []
-    def is_rectangle_like(contour):
-        x, y, w, h = cv2.boundingRect(contour)
-        aspect_ratio = float(w) / h
-        return 0.9 <= aspect_ratio <= 1.1
-    rectangular_contours = [c for c in contours if is_rectangle_like(c)]
-    for contour in rectangular_contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        width_range = (x, x + w)
-        height_range = (y, y + h)
-        count=0
-        for keypoint in trainKeypoints:
-            x, y = keypoint.pt
-            if x >= width_range[0] and x <= width_range[1] and y >= height_range[0] and y <= height_range[1]:
-                count += 1
-        counts.append(count)
-    counts = np.array(counts)
-    max_index = np.argmax(counts)
-    max_contour = rectangular_contours[max_index]
-    matches_image_copy = train_img.copy()
-    cv2.drawContours(matches_image_copy, rectangular_contours[87:88], -1, (0, 255, 0), 3)
-    ext_left = np.min(max_contour[:, :, 0])
-    ext_right = np.max(max_contour[:, :, 0])
-    ext_top = np.min(max_contour[:, :, 1])
-    ext_bottom = np.max(max_contour[:, :, 1])
-    mask = np.zeros(train_img.shape[:2],dtype=np.uint8)  
+    # Returns:
+    # list: A list representing the real image.
+    # """
+    # query_img = patch_image
+    # train_img = combined_image
+    # train_img_bw = cv2.cvtColor(train_img, cv2.COLOR_BGR2GRAY)
+    # orb = cv2.ORB_create()
+    # trainKeypoints, trainDescriptors = orb.detectAndCompute(train_img_bw,None) 
+    # matcher = cv2.BFMatcher() 
+    # edges = cv2.Canny(train_img_bw, 100, 200)
+    # contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    # counts = []
+    # def is_rectangle_like(contour):
+    #     x, y, w, h = cv2.boundingRect(contour)
+    #     aspect_ratio = float(w) / h
+    #     return 0.9 <= aspect_ratio <= 1.1
+    # rectangular_contours = [c for c in contours if is_rectangle_like(c)]
+    # for contour in rectangular_contours:
+    #     x, y, w, h = cv2.boundingRect(contour)
+    #     width_range = (x, x + w)
+    #     height_range = (y, y + h)
+    #     count=0
+    #     for keypoint in trainKeypoints:
+    #         x, y = keypoint.pt
+    #         if x >= width_range[0] and x <= width_range[1] and y >= height_range[0] and y <= height_range[1]:
+    #             count += 1
+    #     counts.append(count)
+    # counts = np.array(counts)
+    # max_index = np.argmax(counts)
+    # max_contour = rectangular_contours[max_index]
+    # matches_image_copy = train_img.copy()
+    # cv2.drawContours(matches_image_copy, rectangular_contours[87:88], -1, (0, 255, 0), 3)
+    # ext_left = np.min(max_contour[:, :, 0])
+    # ext_right = np.max(max_contour[:, :, 0])
+    # ext_top = np.min(max_contour[:, :, 1])
+    # ext_bottom = np.max(max_contour[:, :, 1])
+    # mask = np.zeros(train_img.shape[:2],dtype=np.uint8)  
 
-    for y in range(ext_top, ext_bottom + 1):
-        for x in range(ext_left, ext_right + 1):
-            if 0 <= x < train_img.shape[1] and 0 <= y < train_img.shape[0]:
-                mask[y, x] = 255
-    if mask.any():
-        inpainted_img = cv2.inpaint(train_img, mask, 3, cv2.INPAINT_NS)
-    else:
-        inpainted_img = train_img.copy()
+    # for y in range(ext_top, ext_bottom + 1):
+    #     for x in range(ext_left, ext_right + 1):
+    #         if 0 <= x < train_img.shape[1] and 0 <= y < train_img.shape[0]:
+    #             mask[y, x] = 255
+    # if mask.any():
+    #     inpainted_img = cv2.inpaint(train_img, mask, 3, cv2.INPAINT_NS)
+    # else:
+    #     inpainted_img = train_img.copy()
 
-    return inpainted_img.tolist()
+    # return inpainted_img.tolist()
 
 def solve_cv_hard(input: tuple,processor,model) -> int:
     extracted_question, image = input
@@ -182,10 +174,13 @@ def solve_ml_medium(input: list) -> int:
     x=abs(input[0])
     y=abs(input[1])
     point = np.array([[x, y]])
-    distances = cdist(point, array_ml_medium, 'euclidean')
-    min_dist = np.min(distances)
-    if(min_dist <=1):
+    # Vectorized computation of distances
+    distances = np.linalg.norm(point - array_ml_medium, axis=1)
+    
+    # Check if any distance is less than or equal to 1
+    if np.any(distances <= 1):
         return 0
+    
     return -1
 
 
@@ -455,39 +450,20 @@ def solve_sec_hard(input:tuple)->str:
     return cipher_text
 
 
-# print(solve_sec_hard(('266200199BBCDFF1', '0123456789ABCDEF')))
 def solve_problem_solving_easy(input: tuple) -> list:
-    """
-    This function takes a tuple as input and returns a list as output.
-
-    Parameters:
-    input (tuple): A tuple containing two elements:
-        - A list of strings representing a question.
-        - An integer representing a key.
-
-    Returns:
-    list: A list of strings representing the solution to the problem.
-    """
-    words,X=input
+    words, X = input
     word_counts = Counter(words)
-    sorted_words = sorted(word_counts, key=lambda word: (-word_counts[word], word))
-    return sorted_words[:X]
+    heap = [(-count, word) for word, count in word_counts.items()]
+    heapq.heapify(heap)
+    top_words = [heapq.heappop(heap)[1] for _ in range(X)]
+    return top_words
 
 
 def solve_problem_solving_medium(input: str) -> str:
-    """
-    This function takes a string as input and returns a string as output.
-
-    Parameters:
-    input (str): A string representing the input data.
-
-    Returns:
-    str: A string representing the solution to the problem.
-    """
     num = []
     str_list = []
-    temp = ""
-    s=input
+    temp = []
+    s = input
     i = 0
     while i < len(s):
         if '0' <= s[i] <= '9':
@@ -499,43 +475,40 @@ def solve_problem_solving_medium(input: str) -> str:
             num.append(n)
         elif s[i] == '[':
             str_list.append(temp)
-            temp = ""
+            temp = []
         elif s[i] == ']':
             t = str_list.pop()
             n = num.pop()
             temp = t + temp * n
         else:
-            temp += s[i]
+            temp.append(s[i])
         i += 1
-    return temp
+    return ''.join(temp)
 
-def solve_problem_solving_hard(input: tuple) -> int:
+def solve_problem_solving_hard(input_data: tuple) -> int:
     """
     This function takes a tuple as input and returns an integer as output.
 
     Parameters:
-    input (tuple): A tuple containing two integers representing m and n.
+    input_data (tuple): A tuple containing two integers representing m and n.
 
     Returns:
     int: An integer representing the solution to the problem.
     """
-    def calculate_combination(n, k):
+    # Dynamic programming approach to calculate combinations
+    def nCr(n, k):
         if k > n - k:
             k = n - k
-        result = 1
-        for j in range(1, k + 1):
-            if n % j == 0:
-                result *= n // j
-            elif result % j == 0:
-                result = result // j * n
-            else:
-                result = (result * n) // j
-            n -= 1
-        return result
-    # solve is the most optimal solution for the given problem O(n)
-    x, y = input
+        numerator = 1
+        denominator = 1
+        for i in range(1, k + 1):
+            numerator *= (n - i + 1)
+            denominator *= i
+        return numerator // denominator
+
+    x, y = input_data
     down, right = x - 1, y - 1
-    return calculate_combination(down + right, min(right, down))
+    return nCr(down + right, min(right, down))
 
 
 # riddle_solvers = {
@@ -550,11 +523,11 @@ def solve_problem_solving_hard(input: tuple) -> int:
 #     'problem_solving_medium': solve_problem_solving_medium,
 #     'problem_solving_hard': solve_problem_solving_hard
 # }
-riddle_solvers = {
-    'cv_easy': solve_cv_easy,
-    'cv_medium': solve_cv_medium,
-    'sec_hard':solve_sec_hard,
-    'problem_solving_easy': solve_problem_solving_easy,
-    'problem_solving_medium': solve_problem_solving_medium,
-    'problem_solving_hard': solve_problem_solving_hard
-}
+# riddle_solvers = {
+#     'cv_easy': solve_cv_easy,
+#     'cv_medium': solve_cv_medium,
+#     'sec_hard':solve_sec_hard,
+#     'problem_solving_easy': solve_problem_solving_easy,
+#     'problem_solving_medium': solve_problem_solving_medium,
+#     'problem_solving_hard': solve_problem_solving_hard
+# }

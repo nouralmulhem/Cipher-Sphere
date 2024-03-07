@@ -1,6 +1,5 @@
 import numpy as np
-from matplotlib.pyplot import imread
-import matplotlib.pyplot as plt
+
 
 
 class SteganographyException(Exception):
