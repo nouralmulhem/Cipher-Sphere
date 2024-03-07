@@ -188,22 +188,30 @@ def fail_riddle(team_id):
     
 
 
-start_time = time.time()
 msg, carrier_image,carrier_image2=init_fox(team_id)
 
-
+start_time = time.time()
+diffrences=[]
 
 riddle_id="problem_solving_hard"
 test_case_problem_solving_hard = get_riddle(team_id, riddle_id)
 # print(test_case_problem_solving_hard)
 solution_1 = solve_problem_solving_hard(test_case_problem_solving_hard)
 total_budget = solve_riddle(team_id, solution_1,total_budget)
+end_time1= time.time()
+diffrences.append(end_time1-start_time)
+
+
 
 riddle_id="problem_solving_easy"
 test_case_problem_solving_easy = get_riddle(team_id, riddle_id)
 # print(test_case_problem_solving_easy)
 solution_2 = solve_problem_solving_easy(test_case_problem_solving_easy)
 total_budget = solve_riddle(team_id, solution_2,total_budget)
+end_time2= time.time()
+diffrences.append(end_time2-end_time1)
+
+
 
 
 riddle_id="problem_solving_medium"
@@ -211,6 +219,9 @@ test_case_problem_solving_medium = get_riddle(team_id, riddle_id)
 # print(test_case_problem_solving_medium)
 solution_3 = solve_problem_solving_medium(test_case_problem_solving_medium)
 total_budget = solve_riddle(team_id, solution_3,total_budget)
+end_time3= time.time()
+diffrences.append(end_time3-end_time2)
+
 
 
 riddle_id="sec_hard"
@@ -218,6 +229,9 @@ test_case_sec_hard = get_riddle(team_id, riddle_id)
 # print(test_case_sec_hard)
 solution_4 = solve_sec_hard(test_case_sec_hard)
 total_budget = solve_riddle(team_id, solution_4,total_budget)
+end_time4= time.time()
+diffrences.append(end_time4-end_time3)
+
 
 
 
@@ -226,7 +240,8 @@ test_case_cv_easy = get_riddle(team_id, riddle_id)
 # print(test_case_cv_easy)
 solution_5 = solve_cv_easy(test_case_cv_easy)
 total_budget = solve_riddle(team_id, solution_5,total_budget)
-
+end_time5= time.time()
+diffrences.append(end_time5-end_time4)
 
 
 
@@ -235,6 +250,11 @@ test_case_ml_easy = get_riddle(team_id, riddle_id)
 # print(test_case_ml_easy)
 solution_6 = solve_ml_easy(test_case_ml_easy)
 total_budget = solve_riddle(team_id, solution_6,total_budget)
+end_time6= time.time()
+diffrences.append(end_time6-end_time5)
+
+
+
 
 
 riddle_id="ml_medium"
@@ -242,6 +262,10 @@ test_case_ml_medium = get_riddle(team_id, riddle_id)
 # print(test_case_ml_medium)
 solution_7 = solve_ml_medium(test_case_ml_medium)
 total_budget = solve_riddle(team_id, solution_7,total_budget)
+end_time7= time.time()
+diffrences.append(end_time7-end_time6)
+
+
 
 
 
@@ -251,20 +275,19 @@ test_case_sec_medium_stegano = get_riddle(team_id, riddle_id)
 # print(test_case_sec_medium_stegano)
 solution_9 =solve_sec_medium( np.transpose(test_case_sec_medium_stegano[0], (1, 2, 0)) ) 
 total_budget = solve_riddle(team_id, solution_9,total_budget)
-# except Exception as e:
-#     payload_sent = {
-#             'teamId': team_id,
-#             "solution": "Beyo."
-#         }
-#     response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-#     print('error in test_case_sec_medium_stegano')
-#     print(e)
+end_time8 = time.time()
+diffrences.append(end_time8-end_time7)
+
+
 
 riddle_id="cv_hard"
 test_case_cv_hard = get_riddle(team_id, riddle_id)
 # print(test_case_sec_medium_stegano)
 solution_10 =solve_cv_hard( test_case_cv_hard,processor,model ) 
 total_budget = solve_riddle(team_id, solution_10,total_budget)
+end_time9= time.time()
+diffrences.append(end_time9-end_time8)
+
 # except Exception as e:
 #     payload_sent = {
 #             'teamId': team_id,
@@ -289,31 +312,55 @@ total_budget = solve_riddle(team_id, solution_10,total_budget)
 #     print(e)
 
 # steg = LSBSteg(carrier_image)
-generate_message_array(msg[:5], carrier_image,total_budget,team_id)
-# steg.maskONEValues = [1,2,4,8,16,32,64,128]
-# #Mask used to put one ex:1->00000001, 2->00000010 .. associated with OR bitwise
-# steg.maskONE = steg.maskONEValues.pop(0) #Will be used to do bitwise operations
 
-# steg.maskZEROValues = [254,253,251,247,239,223,191,127]
-# #Mak used to put zero ex:254->11111110, 253->11111101 .. associated with AND bitwise
-# steg.maskZERO = steg.maskZEROValues.pop(0)
-# steg.curwidth = 0  # Current width position
-# steg.curheight = 0 # Current height position
-# steg.curchan = 0   # Current channel position
+# 1
+new_message =[msg[:3]]
+index=0
+channel=0
+channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
-generate_message_array(msg[5:10], carrier_image,total_budget,team_id)
-# steg.maskONEValues = [1,2,4,8,16,32,64,128]
-# #Mask used to put one ex:1->00000001, 2->00000010 .. associated with OR bitwise
-# steg.maskONE = steg.maskONEValues.pop(0) #Will be used to do bitwise operations
 
-# steg.maskZEROValues = [254,253,251,247,239,223,191,127]
-# #Mak used to put zero ex:254->11111110, 253->11111101 .. associated with AND bitwise
-# steg.maskZERO = steg.maskZEROValues.pop(0)
-# steg.curwidth = 0  # Current width position
-# steg.curheight = 0 # Current height position
-# steg.curchan = 0   # Current channel position
+# 2
+new_message =[msg[3:6]]
+index=0
+channel=0
+channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
-generate_message_array(msg[10:], carrier_image,total_budget,team_id)
+
+
+# 3
+new_message =[msg[6:9]]
+index=0
+channel=0
+channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+# 4
+new_message =[msg[9:12]]
+index=0
+channel=0
+channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+# 5
+new_message =[msg[12:15]]
+index=0
+channel=0
+channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+
+# 6
+new_message =[msg[15:]]
+index=0
+channel=0
+channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
 rsponse_end = end_fox("Lu2xdzj")
 end_time = time.time()
 print(rsponse_end.text)
@@ -327,4 +374,5 @@ print("cv hard test",test_case_cv_hard[0])
 print("the solution of cv hard is ",solution_10)
 print("the message is : ",msg)
 print('problem solving hard test',test_case_problem_solving_hard)
+print(diffrences)
 # save imagenp.transpose(test_case_sec_medium_stegano[0], (1, 2, 0))
