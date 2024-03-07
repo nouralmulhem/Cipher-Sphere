@@ -99,7 +99,7 @@ def generate_message_array(message, image_carrier, total_budget, team_id):
 
     # if(total_budget>=2):
         # print("total_budget > 2")
-    channel,total_budget = prepare_message(["$#$#$","#$#$$$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
+    channel,total_budget = prepare_message(["",""],[new_message[index]],total_budget,channel,team_id,image_carrier)
         
     # elif (total_budget>=1):
     #     print("total_budget > 1")
