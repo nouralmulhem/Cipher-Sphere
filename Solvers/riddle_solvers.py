@@ -66,6 +66,8 @@ def solve_cv_easy(test_case: tuple) -> list:
         best_index = find_best_match(current_shred, shreds)
         shreds_indices.append(best_index)
         current_shred = shreds[best_index]
+        if len(visisted_shreds) == len(shreds):
+            break
     return shreds_indices
 
 def solve_cv_medium(input: tuple) -> list:
