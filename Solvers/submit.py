@@ -1,12 +1,20 @@
 import requests
 import numpy as np
-from LSBSteg import encode
+from LSBSteg import encode,LSBSteg
 from riddle_solvers import *
 import cv2
 from PIL import Image
 import matplotlib.pyplot as plt
+from transformers import ViltProcessor, ViltForQuestionAnswering
+import requests
+from PIL import Image
+import time
 
-api_base_url = "http://3.70.97.142:5000"
+processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+
+session = requests.Session()
+api_base_url = "http://16.171.171.147:5000"
 # api_base_url = "http://localhost:3005"
 # team_id = Lu2xdzj (take care to use the same team id and start game 🧑🏼‍🚒)
 team_id="Lu2xdzj"
@@ -21,7 +29,7 @@ def init_fox(team_id):
     payload_sent = {
         'teamId': team_id
     }
-    response = requests.post(api_base_url+"/fox/start", json=payload_sent)
+    response = session.post(api_base_url+"/fox/start", json=payload_sent)
     print(response)
     if response.status_code == 200 or response.status_code == 201:
         print("Game started successfully")
@@ -52,7 +60,7 @@ def send_message(team_id, messages, message_entities=['F', 'F', 'R']):
         "messages": messages,
         "message_entities":message_entities
     }
-    response = requests.post(api_base_url+"/fox/send-message", json=payload_sent)
+    response = session.post(api_base_url+"/fox/send-message", json=payload_sent)
     # if response.status_code == 200 or response.status_code == 201:
     #    print("Message sent successfully")
     # else:
@@ -89,16 +97,16 @@ def generate_message_array(message, image_carrier, total_budget, team_id):
     index=0
     channel=0
 
-    if(total_budget>=2):
+    # if(total_budget>=2):
         # print("total_budget > 2")
-        channel,total_budget = prepare_message(["$#$#$","#$#$$$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
+    channel,total_budget = prepare_message(["$#$#$","#$#$$$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
         
-    elif (total_budget>=1):
-        print("total_budget > 1")
-        channel,total_budget = prepare_message(["#$#$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
-    else:
-        print("total_budget == 0")
-        channel,total_budget = prepare_message([],[new_message[index]],total_budget,channel,team_id,image_carrier)
+    # elif (total_budget>=1):
+    #     print("total_budget > 1")
+    #     channel,total_budget = prepare_message(["#$#$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
+    # else:
+    #     print("total_budget == 0")
+    #     channel,total_budget = prepare_message([],[new_message[index]],total_budget,channel,team_id,image_carrier)
 
 def get_riddle(team_id, riddle_id):
     '''
@@ -114,7 +122,7 @@ def get_riddle(team_id, riddle_id):
         'teamId': team_id,
         "riddleId": riddle_id
     }
-    response = requests.post(api_base_url+"/fox/get-riddle", json=payload_sent)
+    response = session.post(api_base_url+"/fox/get-riddle", json=payload_sent)
     if response.status_code == 200 or response.status_code == 201:
         data = response.json()
         # print("Riddle requested successfully")
@@ -134,7 +142,7 @@ def solve_riddle(team_id, solution,total_budget):
         'teamId': team_id,
         "solution": solution
     }
-    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+    response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
     if response.status_code == 200 or response.status_code == 201:
         data = response.json()
         budget_increase = data['budget_increase']
@@ -161,7 +169,7 @@ def end_fox(team_id):
     payload_sent = {
         'teamId': team_id,
     }
-    response = requests.post(api_base_url+"/fox/end-game", json=payload_sent)
+    response = session.post(api_base_url+"/fox/end-game", json=payload_sent)
     
     if response.status_code == 200 or response.status_code == 201:
         print("Game ended successfully")
@@ -175,12 +183,12 @@ def fail_riddle(team_id):
         'teamId': team_id,
         "solution": "faile"
     }
-    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+    response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
     print(response)
     
 
 
-
+start_time = time.time()
 msg, carrier_image,carrier_image2=init_fox(team_id)
 
 
@@ -222,62 +230,55 @@ total_budget = solve_riddle(team_id, solution_5,total_budget)
 
 
 
-try:
-    riddle_id="ml_easy"
-    test_case_ml_easy = get_riddle(team_id, riddle_id)
-    # print(test_case_ml_easy)
-    solution_6 = solve_ml_easy(test_case_ml_easy)
-    total_budget = solve_riddle(team_id, solution_6,total_budget)
-except Exception as e:
-    print('error in ml_easy')
-    print(e)
+riddle_id="ml_easy"
+test_case_ml_easy = get_riddle(team_id, riddle_id)
+# print(test_case_ml_easy)
+solution_6 = solve_ml_easy(test_case_ml_easy)
+total_budget = solve_riddle(team_id, solution_6,total_budget)
 
 
-try:
-    riddle_id="ml_medium"
-    test_case_ml_medium = get_riddle(team_id, riddle_id)
-    # print(test_case_ml_medium)
-    solution_7 = solve_ml_medium(test_case_ml_medium)
-    total_budget = solve_riddle(team_id, solution_7,total_budget)
-except Exception as e:
-    payload_sent = {
-            'teamId': team_id,
-            "solution": -1
-        }
-    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-    print('error in ml_medium')
-    print(e)
-    
+riddle_id="ml_medium"
+test_case_ml_medium = get_riddle(team_id, riddle_id)
+# print(test_case_ml_medium)
+solution_7 = solve_ml_medium(test_case_ml_medium)
+total_budget = solve_riddle(team_id, solution_7,total_budget)
 
-
-
-try:
-    riddle_id="sec_medium_stegano"
-    test_case_sec_medium_stegano = get_riddle(team_id, riddle_id)
-    # print(test_case_sec_medium_stegano)
-    solution_9 =solve_sec_medium( np.transpose(test_case_sec_medium_stegano[0], (1, 2, 0)) ) 
-    total_budget = solve_riddle(team_id, solution_9,total_budget)
-except Exception as e:
-    payload_sent = {
-            'teamId': team_id,
-            "solution": "Beyo."
-        }
-    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-    print('error in test_case_sec_medium_stegano')
-    print(e)
 
 
 # try:
-#     riddle_id="cv_medium"
-#     test_case_cv_medium = get_riddle(team_id, riddle_id)
-#     # # print(test_case_cv_medium)
-#     # solution_8 = solve_cv_medium(test_case_cv_medium)
-#     combined_image_array , patch_image_array = test_case_cv_medium
+riddle_id="sec_medium_stegano"
+test_case_sec_medium_stegano = get_riddle(team_id, riddle_id)
+# print(test_case_sec_medium_stegano)
+solution_9 =solve_sec_medium( np.transpose(test_case_sec_medium_stegano[0], (1, 2, 0)) ) 
+total_budget = solve_riddle(team_id, solution_9,total_budget)
+# except Exception as e:
 #     payload_sent = {
 #             'teamId': team_id,
-#             "solution": combined_image_array
-#     }
-#     response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+#             "solution": "Beyo."
+#         }
+#     response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+#     print('error in test_case_sec_medium_stegano')
+#     print(e)
+
+riddle_id="cv_hard"
+test_case_cv_hard = get_riddle(team_id, riddle_id)
+# print(test_case_sec_medium_stegano)
+solution_10 =solve_cv_hard( test_case_cv_hard,processor,model ) 
+total_budget = solve_riddle(team_id, solution_10,total_budget)
+# except Exception as e:
+#     payload_sent = {
+#             'teamId': team_id,
+#             "solution":2
+#         }
+#     response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+#     print('error in test_case_cv_hard')
+#     print(e)
+    
+# try:
+#     riddle_id="cv_medium"
+#     test_case_cv_medium = get_riddle(team_id, riddle_id)
+#     solution_11 =solve_cv_medium( test_case_cv_medium ) 
+#     total_budget = solve_riddle(team_id, solution_11,total_budget)
 # except Exception as e:
 #     payload_sent = {
 #             'teamId': team_id,
@@ -287,8 +288,43 @@ except Exception as e:
 #     print('error in cv_medium')
 #     print(e)
 
+# steg = LSBSteg(carrier_image)
 generate_message_array(msg[:5], carrier_image,total_budget,team_id)
+# steg.maskONEValues = [1,2,4,8,16,32,64,128]
+# #Mask used to put one ex:1->00000001, 2->00000010 .. associated with OR bitwise
+# steg.maskONE = steg.maskONEValues.pop(0) #Will be used to do bitwise operations
+
+# steg.maskZEROValues = [254,253,251,247,239,223,191,127]
+# #Mak used to put zero ex:254->11111110, 253->11111101 .. associated with AND bitwise
+# steg.maskZERO = steg.maskZEROValues.pop(0)
+# steg.curwidth = 0  # Current width position
+# steg.curheight = 0 # Current height position
+# steg.curchan = 0   # Current channel position
+
 generate_message_array(msg[5:10], carrier_image,total_budget,team_id)
+# steg.maskONEValues = [1,2,4,8,16,32,64,128]
+# #Mask used to put one ex:1->00000001, 2->00000010 .. associated with OR bitwise
+# steg.maskONE = steg.maskONEValues.pop(0) #Will be used to do bitwise operations
+
+# steg.maskZEROValues = [254,253,251,247,239,223,191,127]
+# #Mak used to put zero ex:254->11111110, 253->11111101 .. associated with AND bitwise
+# steg.maskZERO = steg.maskZEROValues.pop(0)
+# steg.curwidth = 0  # Current width position
+# steg.curheight = 0 # Current height position
+# steg.curchan = 0   # Current channel position
+
 generate_message_array(msg[10:], carrier_image,total_budget,team_id)
 rsponse_end = end_fox("Lu2xdzj")
+end_time = time.time()
 print(rsponse_end.text)
+elapsed_time = end_time - start_time
+
+# Print the result
+print("Elapsed time: {:.4f} seconds".format(elapsed_time))
+cv2.imwrite('fox_trial3/carrier_image.png',carrier_image)
+cv2.imwrite('fox_trial3/cv_hard.png',np.array(test_case_cv_hard[1]))
+print("cv hard test",test_case_cv_hard[0])
+print("the solution of cv hard is ",solution_10)
+print("the message is : ",msg)
+print('problem solving hard test',test_case_problem_solving_hard)
+# save imagenp.transpose(test_case_sec_medium_stegano[0], (1, 2, 0))

@@ -70,6 +70,7 @@ def solve_cv_easy(test_case: tuple) -> list:
 
 def solve_cv_medium(input: tuple) -> list:
     combined_image_array , patch_image_array = input
+    return combined_image_array
     combined_image = np.array(combined_image_array,dtype=np.uint8)
     patch_image = np.array(patch_image_array,dtype=np.uint8)
     """
@@ -129,7 +130,7 @@ def solve_cv_medium(input: tuple) -> list:
 
     return inpainted_img.tolist()
 
-def solve_cv_hard(input: tuple) -> int:
+def solve_cv_hard(input: tuple,processor,model) -> int:
     extracted_question, image = input
     image = np.array(image)
     """
@@ -143,7 +144,14 @@ def solve_cv_hard(input: tuple) -> int:
     Returns:
     int: An integer representing the answer to the question about the image.
     """
-    return 0
+    # prepare inputs
+    encoding = processor(image, extracted_question, return_tensors="pt")
+    # forward pass
+    outputs = model(**encoding)
+    logits = outputs.logits
+    idx = logits.argmax(-1).item()
+    out = model.config.id2label[idx]
+    return out
 
 
 def solve_ml_easy(input) -> list:

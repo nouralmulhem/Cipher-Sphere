@@ -32,7 +32,7 @@ class LSBSteg():
             else:
                 val[self.curchan] = int(val[self.curchan]) & self.maskZERO #AND with maskZERO
             self.image[self.curheight,self.curwidth] = tuple(val)
-            self.next_slot() #Move "cursor" to the next space
+            self.next_slot2() #Move "cursor" to the next space
 
     def next_slot(self):#Move to the next slot were information can be taken or put
         if self.curchan == self.nbchannels-1: #Next Space is the following channel
@@ -76,7 +76,7 @@ class LSBSteg():
         # maskONE = 0b1000000
         # val & maskONE = 0b1000000
         val = int(val) & self.maskONE
-        self.next_slot()
+        self.next_slot2()
         if val > 0:
             return "1"
         else:
@@ -100,13 +100,20 @@ class LSBSteg():
     # Explanation: Binary representation of 6 with bitsize 4.
     #binary_value(6, 4) == '0110'
     ###
-    def binary_value(self, val, bitsize): #Return the binary value of an int as a byte
-        binval = bin(val)[2:] ## delete 0b
+    def binary_value(self, val, bitsize):
+        binval = format(val, '0' + str(bitsize) + 'b')
+        
         if len(binval) > bitsize:
             raise SteganographyException("binary value larger than the expected size")
-        while len(binval) < bitsize:
-            binval = "0"+binval
+        
         return binval
+    # def binary_value(self, val, bitsize):
+    #     binval = format(val, '0' + str(bitsize) + 'b')
+        
+    #     if len(binval) > bitsize:
+    #         raise SteganographyException("binary value larger than the expected size")
+        
+    #     return binval
 
     ## encode text by steps:
     # 1. put len of text
