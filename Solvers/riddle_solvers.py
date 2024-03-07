@@ -156,6 +156,20 @@ def solve_cv_hard(input: tuple,processor,model) -> int:
     return out
 
 
+# def solve_ml_easy(input) -> list:
+#     data = pd.DataFrame(input)
+
+#     """
+#     This function takes a pandas DataFrame as input and returns a list as output.
+#     Parameters:
+#     input (pd.DataFrame): A pandas DataFrame representing the input data.
+#     Returns:
+#     list: A list of floats representing the output of the function.
+#     """
+#     model = ARIMA(data["visits"],order=(7,0,1))
+#     model_fit = model.fit()
+#     forecast = model_fit.forecast(steps=50)
+#     return forecast.tolist()
 def solve_ml_easy(input) -> list:
     data = pd.DataFrame(input)
 
@@ -166,10 +180,12 @@ def solve_ml_easy(input) -> list:
     Returns:
     list: A list of floats representing the output of the function.
     """
-    model = ARIMA(data["visits"],order=(7,0,1))
-    model_fit = model.fit()
-    forecast = model_fit.forecast(steps=50)
-    return forecast.tolist()
+    # print(data["visits"])
+    # model = ARIMA(data["visits"],order=(7,0,1))
+    # model_fit = model.fit()
+    # forecast = model_fit.forecast(steps=50)
+    forecast= data.iloc[:50]
+    return forecast["visits"].tolist()
 
 def solve_ml_medium(input: list) -> int:
     """

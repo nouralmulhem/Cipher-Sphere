@@ -9,6 +9,8 @@ from transformers import ViltProcessor, ViltForQuestionAnswering
 import requests
 from PIL import Image
 import time
+import random
+import string
 
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
 model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
@@ -67,20 +69,26 @@ def send_message(team_id, messages, message_entities=['F', 'F', 'R']):
     #     print("error: ", response.status_code)
    
 def prepare_message(fake_msg,real_msg,total_budget,channel,team_id,image_carrier):
+    channel = 0
     message_entities = ['E' for _ in range(3)]
     messages = [image_carrier.tolist() for _ in range(3)]
+    channels = [0, 1, 2]
     for i in range(len(fake_msg)):
-        image=encode(image_carrier.copy(),fake_msg[i]).tolist()
-        messages[channel]=image
-        message_entities[channel]='F'
-        channel=(channel+1)%3
-        total_budget-=1
+        index = random.sample(channels, 1)[0]  
+        image = encode(image_carrier.copy(), fake_msg[i]).tolist()
+        messages[index] = image
+        message_entities[index] = 'F'
+        channels.remove(index)  # Remove the selected index to avoid repetition
+        total_budget -= 1
     
     for i in range(len(real_msg)):
-        image=encode(image_carrier.copy(),real_msg[i]).tolist()
-        messages[channel]=image
-        message_entities[channel]='R'
-        channel=(channel+1)%3
+        index = random.sample(channels, 1)[0]  
+        image = encode(image_carrier.copy(), real_msg[i]).tolist()
+        messages[index] = image
+        message_entities[index] = 'R'
+        channels.remove(index)  # R
+        
+    # print(message_entities)
     send_message(team_id, messages, message_entities)
     return channel,total_budget
 
@@ -189,6 +197,13 @@ def fail_riddle(team_id):
 
 
 msg, carrier_image,carrier_image2=init_fox(team_id)
+characters = set(string.ascii_lowercase)
+available_chars = characters - set(msg)
+
+def generate_new_string(available_chars, length):
+    new_string = ''.join(random.choices(tuple(available_chars), k=length))
+    return new_string
+
 
 start_time = time.time()
 diffrences=[]
@@ -317,14 +332,14 @@ diffrences.append(end_time9-end_time8)
 new_message =[msg[:3]]
 index=0
 channel=0
-channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+channel,total_budget = prepare_message([generate_new_string(available_chars,20)],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
 
 # 2
 new_message =[msg[3:6]]
 index=0
 channel=0
-channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+channel,total_budget = prepare_message([generate_new_string(available_chars,17)],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
 
 
@@ -332,7 +347,7 @@ channel,total_budget = prepare_message([""],[new_message[index]],total_budget,ch
 new_message =[msg[6:9]]
 index=0
 channel=0
-channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+channel,total_budget = prepare_message([generate_new_string(available_chars,14)],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
 
 
@@ -340,7 +355,7 @@ channel,total_budget = prepare_message([""],[new_message[index]],total_budget,ch
 new_message =[msg[9:12]]
 index=0
 channel=0
-channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+channel,total_budget = prepare_message([generate_new_string(available_chars,13)],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
 
 
@@ -348,7 +363,7 @@ channel,total_budget = prepare_message([""],[new_message[index]],total_budget,ch
 new_message =[msg[12:15]]
 index=0
 channel=0
-channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+channel,total_budget = prepare_message([generate_new_string(available_chars,9)],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
 
 
@@ -357,7 +372,7 @@ channel,total_budget = prepare_message([""],[new_message[index]],total_budget,ch
 new_message =[msg[15:]]
 index=0
 channel=0
-channel,total_budget = prepare_message([""],[new_message[index]],total_budget,channel,team_id,carrier_image)
+channel,total_budget = prepare_message([generate_new_string(available_chars,9)],[new_message[index]],total_budget,channel,team_id,carrier_image)
 
 
 
@@ -368,8 +383,8 @@ elapsed_time = end_time - start_time
 
 # Print the result
 print("Elapsed time: {:.4f} seconds".format(elapsed_time))
-cv2.imwrite('fox_trial3/carrier_image.png',carrier_image)
-cv2.imwrite('fox_trial3/cv_hard.png',np.array(test_case_cv_hard[1]))
+cv2.imwrite('fox_trial4/carrier_image.png',carrier_image)
+cv2.imwrite('fox_trial4/cv_hard.png',np.array(test_case_cv_hard[1]))
 print("cv hard test",test_case_cv_hard[0])
 print("the solution of cv hard is ",solution_10)
 print("the message is : ",msg)
