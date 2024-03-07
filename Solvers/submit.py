@@ -1,10 +1,13 @@
 import requests
 import numpy as np
-from LSBSteg import encode
+from LSBSteg import encode,LSBSteg
 from riddle_solvers import *
 import cv2
+from PIL import Image
+import matplotlib.pyplot as plt
 from transformers import ViltProcessor, ViltForQuestionAnswering
 import requests
+from PIL import Image
 import time
 
 processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
@@ -17,7 +20,6 @@ api_base_url = "http://16.171.171.147:5000"
 team_id="Lu2xdzj"
 # team_id = "xxx"
 total_budget=0
-
 def init_fox(team_id):
     '''
     In this fucntion you need to hit to the endpoint to start the game as a fox with your team id.
@@ -29,12 +31,12 @@ def init_fox(team_id):
     }
     response = session.post(api_base_url+"/fox/start", json=payload_sent)
     print(response)
-    if response.ok:
+    if response.status_code == 200 or response.status_code == 201:
         print("Game started successfully")
         data = response.json()
         msg = data['msg']
         carrier_image = data['carrier_image']
-        return msg, np.array(carrier_image)
+        return msg, np.array(carrier_image),np.array(carrier_image,dtype=np.uint8)
     else:
         print("error: ", response.status_code)
         return None, None,None
@@ -65,17 +67,17 @@ def send_message(team_id, messages, message_entities=['F', 'F', 'R']):
     #     print("error: ", response.status_code)
    
 def prepare_message(fake_msg,real_msg,total_budget,channel,team_id,image_carrier):
-    message_entities = ['E'] * 3
-    messages = [image_carrier.tolist()] * 3
-    for msg in fake_msg:
-        image=encode(image_carrier.copy(),msg).tolist()
+    message_entities = ['E' for _ in range(3)]
+    messages = [image_carrier.tolist() for _ in range(3)]
+    for i in range(len(fake_msg)):
+        image=encode(image_carrier.copy(),fake_msg[i]).tolist()
         messages[channel]=image
         message_entities[channel]='F'
         channel=(channel+1)%3
         total_budget-=1
     
-    for msg in real_msg:
-        image=encode(image_carrier.copy(),msg).tolist()
+    for i in range(len(real_msg)):
+        image=encode(image_carrier.copy(),real_msg[i]).tolist()
         messages[channel]=image
         message_entities[channel]='R'
         channel=(channel+1)%3
@@ -97,7 +99,7 @@ def generate_message_array(message, image_carrier, total_budget, team_id):
 
     # if(total_budget>=2):
         # print("total_budget > 2")
-    channel,total_budget = prepare_message(["",""],[new_message[index]],total_budget,channel,team_id,image_carrier)
+    channel,total_budget = prepare_message(["$#$#$","#$#$$$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
         
     # elif (total_budget>=1):
     #     print("total_budget > 1")
@@ -121,7 +123,7 @@ def get_riddle(team_id, riddle_id):
         "riddleId": riddle_id
     }
     response = session.post(api_base_url+"/fox/get-riddle", json=payload_sent)
-    if response.ok:
+    if response.status_code == 200 or response.status_code == 201:
         data = response.json()
         # print("Riddle requested successfully")
         test_case = data['test_case']
@@ -141,7 +143,7 @@ def solve_riddle(team_id, solution,total_budget):
         "solution": solution
     }
     response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-    if response.ok:
+    if response.status_code == 200 or response.status_code == 201:
         data = response.json()
         budget_increase = data['budget_increase']
         total_budget = data['total_budget']
@@ -169,7 +171,7 @@ def end_fox(team_id):
     }
     response = session.post(api_base_url+"/fox/end-game", json=payload_sent)
     
-    if response.ok:
+    if response.status_code == 200 or response.status_code == 201:
         print("Game ended successfully")
     else:
         print("error: ", response.status_code)
@@ -187,7 +189,7 @@ def fail_riddle(team_id):
 
 
 start_time = time.time()
-msg, carrier_image=init_fox(team_id)
+msg, carrier_image,carrier_image2=init_fox(team_id)
 
 
 
