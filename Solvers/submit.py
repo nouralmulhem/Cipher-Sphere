@@ -213,8 +213,8 @@ test_case_problem_solving_hard = get_riddle(team_id, riddle_id)
 # print(test_case_problem_solving_hard)
 solution_1 = solve_problem_solving_hard(test_case_problem_solving_hard)
 total_budget = solve_riddle(team_id, solution_1,total_budget)
-end_time1= time.time()
-diffrences.append(end_time1-start_time)
+# end_time1= time.time()
+# diffrences.append(end_time1-start_time)
 
 
 
@@ -223,8 +223,8 @@ test_case_problem_solving_easy = get_riddle(team_id, riddle_id)
 # print(test_case_problem_solving_easy)
 solution_2 = solve_problem_solving_easy(test_case_problem_solving_easy)
 total_budget = solve_riddle(team_id, solution_2,total_budget)
-end_time2= time.time()
-diffrences.append(end_time2-end_time1)
+# end_time2= time.time()
+# diffrences.append(end_time2-end_time1)
 
 
 
@@ -234,8 +234,8 @@ test_case_problem_solving_medium = get_riddle(team_id, riddle_id)
 # print(test_case_problem_solving_medium)
 solution_3 = solve_problem_solving_medium(test_case_problem_solving_medium)
 total_budget = solve_riddle(team_id, solution_3,total_budget)
-end_time3= time.time()
-diffrences.append(end_time3-end_time2)
+# end_time3= time.time()
+# diffrences.append(end_time3-end_time2)
 
 
 
@@ -244,8 +244,8 @@ test_case_sec_hard = get_riddle(team_id, riddle_id)
 # print(test_case_sec_hard)
 solution_4 = solve_sec_hard(test_case_sec_hard)
 total_budget = solve_riddle(team_id, solution_4,total_budget)
-end_time4= time.time()
-diffrences.append(end_time4-end_time3)
+# end_time4= time.time()
+# diffrences.append(end_time4-end_time3)
 
 
 
@@ -255,8 +255,8 @@ test_case_cv_easy = get_riddle(team_id, riddle_id)
 # print(test_case_cv_easy)
 solution_5 = solve_cv_easy(test_case_cv_easy)
 total_budget = solve_riddle(team_id, solution_5,total_budget)
-end_time5= time.time()
-diffrences.append(end_time5-end_time4)
+# end_time5= time.time()
+# diffrences.append(end_time5-end_time4)
 
 
 
@@ -265,8 +265,8 @@ test_case_ml_easy = get_riddle(team_id, riddle_id)
 # print(test_case_ml_easy)
 solution_6 = solve_ml_easy(test_case_ml_easy)
 total_budget = solve_riddle(team_id, solution_6,total_budget)
-end_time6= time.time()
-diffrences.append(end_time6-end_time5)
+# end_time6= time.time()
+# diffrences.append(end_time6-end_time4)
 
 
 
@@ -277,8 +277,8 @@ test_case_ml_medium = get_riddle(team_id, riddle_id)
 # print(test_case_ml_medium)
 solution_7 = solve_ml_medium(test_case_ml_medium)
 total_budget = solve_riddle(team_id, solution_7,total_budget)
-end_time7= time.time()
-diffrences.append(end_time7-end_time6)
+# end_time7= time.time()
+# diffrences.append(end_time7-end_time6)
 
 
 
@@ -290,8 +290,8 @@ test_case_sec_medium_stegano = get_riddle(team_id, riddle_id)
 # print(test_case_sec_medium_stegano)
 solution_9 =solve_sec_medium( np.transpose(test_case_sec_medium_stegano[0], (1, 2, 0)) ) 
 total_budget = solve_riddle(team_id, solution_9,total_budget)
-end_time8 = time.time()
-diffrences.append(end_time8-end_time7)
+# end_time8 = time.time()
+# diffrences.append(end_time8-end_time7)
 
 
 
@@ -300,8 +300,8 @@ test_case_cv_hard = get_riddle(team_id, riddle_id)
 # print(test_case_sec_medium_stegano)
 solution_10 =solve_cv_hard( test_case_cv_hard,processor,model ) 
 total_budget = solve_riddle(team_id, solution_10,total_budget)
-end_time9= time.time()
-diffrences.append(end_time9-end_time8)
+# end_time9= time.time()
+# diffrences.append(end_time9-end_time8)
 
 # except Exception as e:
 #     payload_sent = {
@@ -312,19 +312,12 @@ diffrences.append(end_time9-end_time8)
 #     print('error in test_case_cv_hard')
 #     print(e)
     
-# try:
-#     riddle_id="cv_medium"
-#     test_case_cv_medium = get_riddle(team_id, riddle_id)
-#     solution_11 =solve_cv_medium( test_case_cv_medium ) 
-#     total_budget = solve_riddle(team_id, solution_11,total_budget)
-# except Exception as e:
-#     payload_sent = {
-#             'teamId': team_id,
-#             "solution": []
-#     }
-#     response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
-#     print('error in cv_medium')
-#     print(e)
+# riddle_id="cv_medium"
+# test_case_cv_medium = get_riddle(team_id, riddle_id)
+# solution_11 =solve_cv_medium( test_case_cv_medium ) 
+# total_budget = solve_riddle(team_id, solution_11,total_budget)
+# end_time10= time.time()
+# diffrences.append(end_time10 - end_time9)
 
 # steg = LSBSteg(carrier_image)
 
@@ -383,11 +376,11 @@ elapsed_time = end_time - start_time
 
 # Print the result
 print("Elapsed time: {:.4f} seconds".format(elapsed_time))
-cv2.imwrite('fox_trial4/carrier_image.png',carrier_image)
-cv2.imwrite('fox_trial4/cv_hard.png',np.array(test_case_cv_hard[1]))
+cv2.imwrite('fox_trial6/carrier_image.png',carrier_image)
+cv2.imwrite('fox_trial6/cv_hard.png',np.array(test_case_cv_hard[1]))
 print("cv hard test",test_case_cv_hard[0])
 print("the solution of cv hard is ",solution_10)
 print("the message is : ",msg)
 print('problem solving hard test',test_case_problem_solving_hard)
-print(diffrences)
+# print(diffrences)
 # save imagenp.transpose(test_case_sec_medium_stegano[0], (1, 2, 0))
