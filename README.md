@@ -70,6 +70,11 @@ pip install -r requirements.txt
 │   ├── API Documentation.pdf
 │   ├── Hackathon General Documentation.pdf
 │   └─── Riddles Documentation.pdf
+├─── Eagle
+│   ├── eagle.py
+│   ├── Eagle_submission_script.ipynb
+│   ├── BiLstm_code.ipynb
+│   └─── GRU_code.ipynb
 ├─── Solvers
 │   ├─── fox_submission_solver.py
 │   └─── eagle_submission_solver.py
