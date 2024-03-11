@@ -1,12 +1,19 @@
 import requests
 import numpy as np
 from LSBSteg import encode
-from riddle_solvers import riddle_solvers
+from riddle_solvers import *
 import cv2
+from transformers import ViltProcessor, ViltForQuestionAnswering
+import requests
+import time
+import random
+import string
 
-api_base_url = "http://3.70.97.142:5000"
-# api_base_url = "http://localhost:3005"
-# team_id = Lu2xdzj (take care to use the same team id and start game 🧑🏼‍🚒)
+processor = ViltProcessor.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vqa")
+
+session = requests.Session()
+api_base_url = "http://16.171.171.147:5000"
 team_id="Lu2xdzj"
 total_budget=0
 def init_fox(team_id):
@@ -18,18 +25,68 @@ def init_fox(team_id):
     payload_sent = {
         'teamId': team_id
     }
-    response = requests.post(api_base_url+"/fox/start", json=payload_sent)
+    response = session.post(api_base_url+"/fox/start", json=payload_sent)
     print(response)
     if response.status_code == 200 or response.status_code == 201:
         print("Game started successfully")
         data = response.json()
         msg = data['msg']
         carrier_image = data['carrier_image']
-        return msg, np.array(carrier_image)
+        return msg, np.array(carrier_image),np.array(carrier_image,dtype=np.uint8)
     else:
         print("error: ", response.status_code)
+        return None, None,None
 
-def generate_message_array(message, image_carrier):  
+
+
+def split_string_into_two_chars(input_string):
+    pairs = [input_string[i:i+2] for i in range(0, len(input_string), 2)]
+    if len(input_string) % 2 != 0:
+        pairs.append(pairs.pop()[0])
+    return pairs
+    
+def send_message(team_id, messages, message_entities=['F', 'F', 'R']):
+    '''
+    Use this function to call the api end point to send one chunk of the message. 
+    You will need to send the message (images) in each of the 3 channels along with their entites.
+    Refer to the API documentation to know more about what needs to be send in this api call. 
+    '''
+    payload_sent = {
+        'teamId': team_id,
+        "messages": messages,
+        "message_entities":message_entities
+    }
+    response = session.post(api_base_url+"/fox/send-message", json=payload_sent)
+    # if response.status_code == 200 or response.status_code == 201:
+    #    print("Message sent successfully")
+    # else:
+    #     print("error: ", response.status_code)
+   
+def prepare_message(fake_msg,real_msg,total_budget,channel,team_id,image_carrier):
+    channel = 0
+    message_entities = ['E' for _ in range(3)]
+    messages = [image_carrier.tolist() for _ in range(3)]
+    channels = [0, 1, 2]
+    for i in range(len(fake_msg)):
+        index = random.sample(channels, 1)[0]  
+        image = encode(image_carrier.copy(), fake_msg[i]).tolist()
+        messages[index] = image
+        message_entities[index] = 'F'
+        channels.remove(index)  # Remove the selected index to avoid repetition
+        total_budget -= 1
+    
+    for i in range(len(real_msg)):
+        index = random.sample(channels, 1)[0]  
+        image = encode(image_carrier.copy(), real_msg[i]).tolist()
+        messages[index] = image
+        message_entities[index] = 'R'
+        channels.remove(index)  # R
+        
+    # print(message_entities)
+    send_message(team_id, messages, message_entities)
+    return channel,total_budget
+
+def generate_message_array(message, image_carrier, total_budget, team_id):
     '''
     In this function you will need to create your own startegy. That includes:
         1. How you are going to split the real message into chunkcs
@@ -37,52 +94,21 @@ def generate_message_array(message, image_carrier):
         3. Decide what 3 chuncks you will send in each turn in the 3 channels & what is their entities (F,R,E)
         4. Encode each chunck in the image carrier  
     '''
-    def split_string_into_two_chars(input_string):
-        pairs = [input_string[i:i+2] for i in range(0, len(input_string), 2)]
-        if len(input_string) % 2 != 0:
-            pairs.append(pairs.pop()[0])
-        return pairs
     # new_message = split_string_into_two_chars(message)
     new_message =[message]
     index=0
     channel=0
-    def sent_message(fake_msg,real_msg):
-        global total_budget
-        global channel
-        message_entities=['E' for _ in range(3)]
-        messages = [image_carrier.tolist() for _ in range(3)]
-        for i in range(len(fake_msg)):
-            image=encode(image_carrier.copy(),fake_msg[i]).tolist()
-            messages[channel]=image
-            message_entities[channel]='F'
-            channel=(channel+1)%3
-            total_budget-=1
+
+    # if(total_budget>=2):
+        # print("total_budget > 2")
+    channel,total_budget = prepare_message(["$#$#$","#$#$$$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
         
-        for i in range(len(real_msg)):
-            image=encode(image_carrier.copy(),real_msg[i]).tolist()
-            messages[channel]=image
-            message_entities[channel]='R'
-            channel=(channel+1)%3
-
-    if(total_budget>=2):
-        print("total_budget > 2")
-        sent_message(["fake","fffff"],[new_message[index]])
-    elif (total_budget>=1):
-        print("total_budget > 1")
-        sent_message(["fake"],[new_message[index]])
-    else:
-        print("total_budget == 0")
-        sent_message([],[new_message[index]])
-    # while(total_budget>0 ):
-    #     if(total_budget>=2):
-    #         sent_message(["fake","fffff"],[new_message[index]])
-    #     else:
-    #         sent_message(["fake"],[new_message[index]])
-    #     index+=1
-    # while(index< len(new_message)):
-    #     sent_message([],[new_message[index]])
-    #     index+=1
-
+    # elif (total_budget>=1):
+    #     print("total_budget > 1")
+    #     channel,total_budget = prepare_message(["#$#$"],[new_message[index]],total_budget,channel,team_id,image_carrier)
+    # else:
+    #     print("total_budget == 0")
+    #     channel,total_budget = prepare_message([],[new_message[index]],total_budget,channel,team_id,image_carrier)
 
 def get_riddle(team_id, riddle_id):
     '''
@@ -98,10 +124,10 @@ def get_riddle(team_id, riddle_id):
         'teamId': team_id,
         "riddleId": riddle_id
     }
-    response = requests.post(api_base_url+"/fox/get-riddle", json=payload_sent)
+    response = session.post(api_base_url+"/fox/get-riddle", json=payload_sent)
     if response.status_code == 200 or response.status_code == 201:
         data = response.json()
-        print("Riddle requested successfully")
+        # print("Riddle requested successfully")
         test_case = data['test_case']
         return test_case
     else:
@@ -118,38 +144,22 @@ def solve_riddle(team_id, solution,total_budget):
         'teamId': team_id,
         "solution": solution
     }
-    response = requests.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+    response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
     if response.status_code == 200 or response.status_code == 201:
         data = response.json()
         budget_increase = data['budget_increase']
         total_budget = data['total_budget']
         status = data['status']
-        if(status == "success"):
-            print("Riddle solved successfully")
-            print("Budget increased by: ", budget_increase)
-            print("Total budget: ", total_budget)
-        else:
-            print("Riddle not solved")
+        # if(status == "success"):
+        #     # print("Riddle solved successfully")
+        #     # print("Budget increased by: ", budget_increase)
+        #     # print("Total budget: ", total_budget)
+        # else:
+            # print("Riddle not solved")
     else:
         print("error: ", response.status_code)
+    return total_budget
 
-def send_message(team_id, messages, message_entities=['F', 'E', 'R']):
-    '''
-    Use this function to call the api end point to send one chunk of the message. 
-    You will need to send the message (images) in each of the 3 channels along with their entites.
-    Refer to the API documentation to know more about what needs to be send in this api call. 
-    '''
-    payload_sent = {
-        'teamId': team_id,
-        "messages": messages,
-        "message_entities":message_entities
-    }
-    response = requests.post(api_base_url+"/fox/send-message", json=payload_sent)
-    if response.status_code == 200 or response.status_code == 201:
-       print("Message sent successfully")
-    else:
-        print("error: ", response.status_code)
-   
 def end_fox(team_id):
     '''
     Use this function to call the api end point of ending the fox game.
@@ -161,47 +171,211 @@ def end_fox(team_id):
     payload_sent = {
         'teamId': team_id,
     }
-    response = requests.post(api_base_url+"/fox/end-game", json=payload_sent)
+    response = session.post(api_base_url+"/fox/end-game", json=payload_sent)
+    
     if response.status_code == 200 or response.status_code == 201:
         print("Game ended successfully")
     else:
         print("error: ", response.status_code)
-    pass
-
-def submit_fox_attempt(team_id,total_budget):
-    '''
-     Call this function to start playing as a fox. 
-     You should submit with your own team id that was sent to you in the email.
-     Remeber you have up to 15 Submissions as a Fox In phase1.
-     In this function you should:
-        1. Initialize the game as fox 
-        2. Solve riddles 
-        3. Make your own Strategy of sending the messages in the 3 channels
-        4. Make your own Strategy of splitting the message into chunks
-        5. Send the messages 
-        6. End the Game
-    Note that:
-        1. You HAVE to start and end the game on your own. The time between the starting and ending the game is taken into the scoring function
-        2. You can send in the 3 channels any combination of F(Fake),R(Real),E(Empty) under the conditions that
-            2.a. At most one real message is sent
-            2.b. You cannot send 3 E(Empty) messages, there should be atleast R(Real)/F(Fake)
-        3. Refer To the documentation to know more about the API handling 
-    '''
-    msg, carrier_image=init_fox(team_id)
-    ## solve riddles
-    try:
-        for riddle_id,riddle_func in riddle_solvers.items():
-            test_case = get_riddle(team_id, riddle_id)
-            if test_case == '':
-                continue
-            solution = riddle_func(test_case)
-            solve_riddle(team_id, solution,total_budget)
-    except Exception as e:
-        print(e)
-    total_budget=min(total_budget,12)
-    ## generate message array
-    generate_message_array(msg, carrier_image)
-    end_fox(team_id)
+    return response
 
 
-submit_fox_attempt(team_id,total_budget)
+def fail_riddle(team_id):
+    payload_sent = {
+        'teamId': team_id,
+        "solution": "faile"
+    }
+    response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+    print(response)
+    
+
+
+msg, carrier_image,carrier_image2=init_fox(team_id)
+characters = set(string.ascii_lowercase)
+available_chars = characters - set(msg)
+
+def generate_new_string(available_chars, length):
+    new_string = ''.join(random.choices(tuple(available_chars), k=length))
+    return new_string
+
+
+start_time = time.time()
+diffrences=[]
+
+riddle_id="problem_solving_hard"
+test_case_problem_solving_hard = get_riddle(team_id, riddle_id)
+# print(test_case_problem_solving_hard)
+solution_1 = solve_problem_solving_hard(test_case_problem_solving_hard)
+total_budget = solve_riddle(team_id, solution_1,total_budget)
+# end_time1= time.time()
+# diffrences.append(end_time1-start_time)
+
+
+
+riddle_id="problem_solving_easy"
+test_case_problem_solving_easy = get_riddle(team_id, riddle_id)
+# print(test_case_problem_solving_easy)
+solution_2 = solve_problem_solving_easy(test_case_problem_solving_easy)
+total_budget = solve_riddle(team_id, solution_2,total_budget)
+# end_time2= time.time()
+# diffrences.append(end_time2-end_time1)
+
+
+
+
+riddle_id="problem_solving_medium"
+test_case_problem_solving_medium = get_riddle(team_id, riddle_id)
+# print(test_case_problem_solving_medium)
+solution_3 = solve_problem_solving_medium(test_case_problem_solving_medium)
+total_budget = solve_riddle(team_id, solution_3,total_budget)
+# end_time3= time.time()
+# diffrences.append(end_time3-end_time2)
+
+
+
+riddle_id="sec_hard"
+test_case_sec_hard = get_riddle(team_id, riddle_id)
+# print(test_case_sec_hard)
+solution_4 = solve_sec_hard(test_case_sec_hard)
+total_budget = solve_riddle(team_id, solution_4,total_budget)
+# end_time4= time.time()
+# diffrences.append(end_time4-end_time3)
+
+
+
+
+riddle_id="cv_easy"
+test_case_cv_easy = get_riddle(team_id, riddle_id)
+# print(test_case_cv_easy)
+solution_5 = solve_cv_easy(test_case_cv_easy)
+total_budget = solve_riddle(team_id, solution_5,total_budget)
+# end_time5= time.time()
+# diffrences.append(end_time5-end_time4)
+
+
+
+riddle_id="ml_easy"
+test_case_ml_easy = get_riddle(team_id, riddle_id)
+# print(test_case_ml_easy)
+solution_6 = solve_ml_easy(test_case_ml_easy)
+total_budget = solve_riddle(team_id, solution_6,total_budget)
+# end_time6= time.time()
+# diffrences.append(end_time6-end_time4)
+
+
+
+
+
+riddle_id="ml_medium"
+test_case_ml_medium = get_riddle(team_id, riddle_id)
+# print(test_case_ml_medium)
+solution_7 = solve_ml_medium(test_case_ml_medium)
+total_budget = solve_riddle(team_id, solution_7,total_budget)
+# end_time7= time.time()
+# diffrences.append(end_time7-end_time6)
+
+
+
+
+
+# try:
+riddle_id="sec_medium_stegano"
+test_case_sec_medium_stegano = get_riddle(team_id, riddle_id)
+# print(test_case_sec_medium_stegano)
+solution_9 =solve_sec_medium( np.transpose(test_case_sec_medium_stegano[0], (1, 2, 0)) ) 
+total_budget = solve_riddle(team_id, solution_9,total_budget)
+# end_time8 = time.time()
+# diffrences.append(end_time8-end_time7)
+
+
+
+riddle_id="cv_hard"
+test_case_cv_hard = get_riddle(team_id, riddle_id)
+# print(test_case_sec_medium_stegano)
+solution_10 =solve_cv_hard( test_case_cv_hard,processor,model ) 
+total_budget = solve_riddle(team_id, solution_10,total_budget)
+# end_time9= time.time()
+# diffrences.append(end_time9-end_time8)
+
+# except Exception as e:
+#     payload_sent = {
+#             'teamId': team_id,
+#             "solution":2
+#         }
+#     response = session.post(api_base_url+"/fox/solve-riddle", json=payload_sent)
+#     print('error in test_case_cv_hard')
+#     print(e)
+    
+# riddle_id="cv_medium"
+# test_case_cv_medium = get_riddle(team_id, riddle_id)
+# solution_11 =solve_cv_medium( test_case_cv_medium ) 
+# total_budget = solve_riddle(team_id, solution_11,total_budget)
+# end_time10= time.time()
+# diffrences.append(end_time10 - end_time9)
+
+# steg = LSBSteg(carrier_image)
+
+# 1
+new_message =[msg[:3]]
+index=0
+channel=0
+fake_string=generate_new_string(available_chars,5)
+channel,total_budget = prepare_message([fake_string],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+# 2
+new_message =[msg[3:6]]
+index=0
+channel=0
+channel,total_budget = prepare_message([fake_string],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+# 3
+new_message =[msg[6:9]]
+index=0
+channel=0
+channel,total_budget = prepare_message([fake_string],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+# 4
+new_message =[msg[9:12]]
+index=0
+channel=0
+channel,total_budget = prepare_message([fake_string],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+# 5
+new_message =[msg[12:15]]
+index=0
+channel=0
+channel,total_budget = prepare_message([fake_string],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+
+# 6
+new_message =[msg[15:]]
+index=0
+channel=0
+channel,total_budget = prepare_message([fake_string],[new_message[index]],total_budget,channel,team_id,carrier_image)
+
+
+
+rsponse_end = end_fox("Lu2xdzj")
+end_time = time.time()
+print(rsponse_end.text)
+elapsed_time = end_time - start_time
+
+# Print the result
+print("Elapsed time: {:.4f} seconds".format(elapsed_time))
+cv2.imwrite('fox_trial6/carrier_image.png',carrier_image)
+cv2.imwrite('fox_trial6/cv_hard.png',np.array(test_case_cv_hard[1]))
+print("cv hard test",test_case_cv_hard[0])
+print("the solution of cv hard is ",solution_10)
+print("the message is : ",msg)
+print('problem solving hard test',test_case_problem_solving_hard)
+# print(diffrences)
+# save imagenp.transpose(test_case_sec_medium_stegano[0], (1, 2, 0))
