@@ -4,7 +4,7 @@
 
 </div>
 <div align="center">
-   <img align="center" height="350px"  src="https://i.pinimg.com/originals/2e/e1/0a/2ee10a21c22d5729a0fe3ce9914ee637.gif" alt="logo">
+   <img align="center" height="350px"  src="https://i.pinimg.com/originals/7b/99/67/7b9967bab38c9140f472c16b6d7c1d0c.gif" alt="logo">
    <br>
 
 ### ”🦊 Fox VS Eagle 🦅“
