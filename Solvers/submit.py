@@ -1,13 +1,10 @@
 import requests
 import numpy as np
-from LSBSteg import encode,LSBSteg
+from LSBSteg import encode
 from riddle_solvers import *
 import cv2
-from PIL import Image
-import matplotlib.pyplot as plt
 from transformers import ViltProcessor, ViltForQuestionAnswering
 import requests
-from PIL import Image
 import time
 import random
 import string
@@ -17,10 +14,7 @@ model = ViltForQuestionAnswering.from_pretrained("dandelin/vilt-b32-finetuned-vq
 
 session = requests.Session()
 api_base_url = "http://16.171.171.147:5000"
-# api_base_url = "http://localhost:3005"
-# team_id = Lu2xdzj (take care to use the same team id and start game 🧑🏼‍🚒)
 team_id="Lu2xdzj"
-# team_id = "xxx"
 total_budget=0
 def init_fox(team_id):
     '''

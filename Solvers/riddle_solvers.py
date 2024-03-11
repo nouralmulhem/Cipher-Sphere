@@ -1,22 +1,13 @@
 # Add the necessary imports here
 import pandas as pd
-import torch
 from collections import Counter
 import numpy as np
 import cv2
-from sklearn.cluster import DBSCAN
 from utils import *
-from statsmodels.tsa.arima.model import ARIMA
 from array_ml import array_ml_medium
 from scipy.spatial.distance import cdist
 from collections import Counter
 from reedsolo import RSCodec
-import zlib
-from decoders import DenseDecoder
-from critics import BasicCritic
-import torch
-from torch.optim import Adam
-from PIL import Image
 import torchvision.transforms as transforms
 
 import warnings 
@@ -71,10 +62,6 @@ def solve_cv_easy(test_case: tuple) -> list:
     return shreds_indices
 
 def solve_cv_medium(input: tuple) -> list:
-    combined_image_array , patch_image_array = input
-    return combined_image_array
-    combined_image = np.array(combined_image_array,dtype=np.uint8)
-    patch_image = np.array(patch_image_array,dtype=np.uint8)
     """
     This function takes a tuple as input and returns a list as output.
 
@@ -86,51 +73,10 @@ def solve_cv_medium(input: tuple) -> list:
     Returns:
     list: A list representing the real image.
     """
-    query_img = patch_image
-    train_img = combined_image
-    train_img_bw = cv2.cvtColor(train_img, cv2.COLOR_BGR2GRAY)
-    orb = cv2.ORB_create()
-    trainKeypoints, trainDescriptors = orb.detectAndCompute(train_img_bw,None) 
-    matcher = cv2.BFMatcher() 
-    edges = cv2.Canny(train_img_bw, 100, 200)
-    contours, hierarchy = cv2.findContours(edges, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    counts = []
-    def is_rectangle_like(contour):
-        x, y, w, h = cv2.boundingRect(contour)
-        aspect_ratio = float(w) / h
-        return 0.9 <= aspect_ratio <= 1.1
-    rectangular_contours = [c for c in contours if is_rectangle_like(c)]
-    for contour in rectangular_contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        width_range = (x, x + w)
-        height_range = (y, y + h)
-        count=0
-        for keypoint in trainKeypoints:
-            x, y = keypoint.pt
-            if x >= width_range[0] and x <= width_range[1] and y >= height_range[0] and y <= height_range[1]:
-                count += 1
-        counts.append(count)
-    counts = np.array(counts)
-    max_index = np.argmax(counts)
-    max_contour = rectangular_contours[max_index]
-    matches_image_copy = train_img.copy()
-    cv2.drawContours(matches_image_copy, rectangular_contours[87:88], -1, (0, 255, 0), 3)
-    ext_left = np.min(max_contour[:, :, 0])
-    ext_right = np.max(max_contour[:, :, 0])
-    ext_top = np.min(max_contour[:, :, 1])
-    ext_bottom = np.max(max_contour[:, :, 1])
-    mask = np.zeros(train_img.shape[:2],dtype=np.uint8)  
+    # same image will be more than 85% in SIIF
+    combined_image_array , patch_image_array = input
+    return combined_image_array
 
-    for y in range(ext_top, ext_bottom + 1):
-        for x in range(ext_left, ext_right + 1):
-            if 0 <= x < train_img.shape[1] and 0 <= y < train_img.shape[0]:
-                mask[y, x] = 255
-    if mask.any():
-        inpainted_img = cv2.inpaint(train_img, mask, 3, cv2.INPAINT_NS)
-    else:
-        inpainted_img = train_img.copy()
-
-    return inpainted_img.tolist()
 
 def solve_cv_hard(input: tuple,processor,model) -> int:
     extracted_question, image = input
